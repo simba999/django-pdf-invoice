@@ -22,9 +22,54 @@ except ImportError:
 
 ZUGFERD_LEVEL = 'comfort'
 ZUGFERD_FILENAME = 'ZUGFeRD-invoice.xml'
+STATE = 'open'
+invoice = {
+    'state': 'open',
+    'number': '123456'
+}
+
+def _add_document_context_block(request, root, nsmap, ns):
+    doc_ctx = etree.SubElement(
+        root, ns['rsm'] + 'SpecifiedExchangedDocumentContext')
+    if STATE not in ('open', 'paid'):
+        test_indic = etree.SubElement(doc_ctx, ns['ram'] + 'TestIndicator')
+        indic = etree.SubElement(test_indic, ns['udt'] + 'Indicator')
+        indic.text = 'true'
+    ctx_param = etree.SubElement(
+        doc_ctx, ns['ram'] + 'GuidelineSpecifiedDocumentContextParameter')
+    ctx_param_id = etree.SubElement(ctx_param, ns['ram'] + 'ID')
+    ctx_param_id.text = '%s:%s' % (nsmap['rsm'], ZUGFERD_LEVEL)
+
+def _add_header_block(request, root, ns):
+        header_doc = etree.SubElement(
+            root, ns['rsm'] + 'HeaderExchangedDocument')
+        header_doc_id = etree.SubElement(header_doc, ns['ram'] + 'ID')
+        if STATE in ('open', 'paid'):
+            header_doc_id.text = self.number
+        else:
+            header_doc_id.text = self.state
+        header_doc_name = etree.SubElement(header_doc, ns['ram'] + 'Name')
+        if self.type == 'out_refund':
+            header_doc_name.text = _('Refund')
+        else:
+            header_doc_name.text = _('Invoice')
+        header_doc_typecode = etree.SubElement(
+            header_doc, ns['ram'] + 'TypeCode')
+        header_doc_typecode.text = '380'
+        # 380 = Commercial invoices (including refund)
+        date_invoice_dt = fields.Date.from_string(
+            self.date_invoice or fields.Date.context_today(self))
+        self._add_date('IssueDateTime', date_invoice_dt, header_doc, ns)
+        if self.comment:
+            note = etree.SubElement(header_doc, ns['ram'] + 'IncludedNote')
+            content_note = etree.SubElement(note, ns['ram'] + 'Content')
+            content_note.text = self.comment
 
 # Create your views here.
 def generate_zugferd_xml(request):
+    """
+        Generate zugferd_xml file
+    """
     nsmap = {
         'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
         'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
@@ -41,34 +86,9 @@ def generate_zugferd_xml(request):
                 'UnqualifiedDataType:15}',
         }
     
-    # get the page number
-    pdf_file = open('2.pdf', 'rb')
-    with open('2.pdf', 'rb') as fp:
-        pdf_content = fp.read()
-
-    read_pdf = PdfFileReader(pdf_file)
-    number_of_pages = read_pdf.getNumPages()
-    
-    pdb.set_trace()
-    is_zugferd = False
-    try:
-        
-        fd = StringIO(pdf_content)
-        pdf = PdfFileReader(fd)
-        pdf_root = pdf.trailer['/Root']
-        logger.debug('pdf_root=%s', pdf_root)
-        embeddedfiles = pdf_root['/Names']['/EmbeddedFiles']['/Names']
-        print "Embeded Files:  ", embeddedfiles
-        root = etree.Element(ns['rsm'] + 'CrossIndustryDocument', nsmap=nsmap)
-        for embeddedfile in embeddedfiles:
-            if embeddedfile == ZUGFERD_FILENAME:
-                is_zugferd = True
-                break
-    except:
-        pass
-
-    # self._add_document_context_block(root, nsmap, ns)
-    # self._add_header_block(root, ns)
+    sign = 1
+    _add_document_context_block(root, nsmap, ns)
+   _add_header_block(root, ns)
 
     trade_transaction = etree.SubElement(
         root, ns['rsm'] + 'SpecifiedSupplyChainTradeTransaction')
@@ -92,3 +112,35 @@ def generate_zugferd_xml(request):
     logger.debug(xml_string)
     return xml_string
     return HttpResponse("ok")
+
+def pdf_is_zugfered(request, filename):
+    """
+        check if the pdf file is ZUGFeRE format
+    """
+    pdf_file = open(filename, 'rb')
+    with open(filename, 'rb') as fp:
+        pdf_content = fp.read()
+
+    read_pdf = PdfFileReader(pdf_file)
+    number_of_pages = read_pdf.getNumPages()
+    
+    pdb.set_trace()
+    is_zugferd = False
+    try:
+        
+        fd = StringIO(pdf_content)
+        pdf = PdfFileReader(fd)
+        pdf_root = pdf.trailer['/Root']
+        logger.debug('pdf_root=%s', pdf_root)
+        embeddedfiles = pdf_root['/Names']['/EmbeddedFiles']['/Names']
+        print "Embeded Files:  ", embeddedfiles
+        root = etree.Element(ns['rsm'] + 'CrossIndustryDocument', nsmap=nsmap)
+        for embeddedfile in embeddedfiles:
+            if embeddedfile == ZUGFERD_FILENAME:
+                is_zugferd = True
+                return is_zugferd
+                break
+    except:
+        pass
+
+    return is_zugferd
