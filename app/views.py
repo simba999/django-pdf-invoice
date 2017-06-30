@@ -9,7 +9,6 @@ from datetime import datetime
 import PyPDF2
 import logging
 import time
-import pdb
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,7 @@ try:
 except ImportError:
     logger.debug('Cannot import PyPDF2')
 
-
+# dummy data
 ZUGFERD_LEVEL = 'comfort'
 ZUGFERD_FILENAME = 'ZUGFeRD-invoice.xml'
 STATE = 'open'
@@ -101,6 +100,8 @@ INVOICE = {
     'amount_total': 375,
     'residual': 56
 }
+
+# root of xml document
 root = None
 
 def _add_date(node_name, date_datetime, parent_node, ns):
@@ -391,6 +392,9 @@ def generate_zugferd_xml(request):
     """
         Generate zugferd_xml file
     """
+
+    # mapping for namespaces for xml
+    # inspired from https://github.com/OCA/edi/blob/10.0/account_invoice_factur-x/models/account_invoice.py
     nsmap = {
         'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
         'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
@@ -399,6 +403,9 @@ def generate_zugferd_xml(request):
         'udt': 'urn:un:unece:uncefact:data:'
                 'standard:UnqualifiedDataType:15',
         }
+
+    # values for namespaces for xml
+    # inspired from https://github.com/OCA/edi/blob/10.0/account_invoice_factur-x/models/account_invoice.py
     ns = {
         'rsm': '{urn:ferd:CrossIndustryDocument:invoice:1p0}',
         'ram': '{urn:un:unece:uncefact:data:standard:'
@@ -407,10 +414,14 @@ def generate_zugferd_xml(request):
                 'UnqualifiedDataType:15}',
         }
     
+    # variable for type to check if it is "invoice" or "refund"
+    # if type is invoice, then 1 or -1
     sign = 1
-
+    
+    # 2.pdf is sample Zugrefd pdf file  
     pdf_file = open('2.pdf', 'rb')
     read_pdf = PdfFileReader(pdf_file)
+    # get the toal number of pages
     number_of_pages = read_pdf.getNumPages()
     
     root = etree.Element(ns['rsm'] + 'CrossIndustryDocument', nsmap=nsmap)
