@@ -253,6 +253,8 @@ def _add_trade_settlement_block(trade_transaction, sign, ns):
                 not in [31, 42])):
         _add_trade_settlement_payment_means_block(trade_settlement, sign, ns)
     tax_basis_total = 0.0
+
+    # add list of tax information to xml
     if INVOICE['tax_line_ids']:
         for tline in INVOICE['tax_line_ids']:
             tax = tline['tax_id']
@@ -311,7 +313,8 @@ def _add_trade_settlement_block(trade_transaction, sign, ns):
         trade_payment_term_desc.text = INVOICE['payment_term_id']['name']
     else:
         trade_payment_term_desc.text = 'No specific payment term selected'
-
+    
+    # add due date(deadline) of pay
     if INVOICE['date_due']:
         date_due_dt = INVOICE['date_due']
         _add_date('DueDateDateTime', date_due_dt, trade_payment_term, ns)
@@ -350,6 +353,15 @@ def _add_trade_settlement_block(trade_transaction, sign, ns):
     residual.text = '%0.*f' % (prec, INVOICE['residual'] * sign)
 
 def _add_trade_settlement_payment_means_block(trade_settlement, sign, ns):
+    """
+        add settlement payment information to xml
+        Params: 
+        """
+            trade_settlement: place where settlement payment information should be saved
+            sign: [1: "invoice", -1: "refund"]
+            ns: namespace for xml
+        """
+    """
     payment_means = etree.SubElement(
         trade_settlement,
         ns['ram'] + 'SpecifiedTradeSettlementPaymentMeans')
@@ -376,6 +388,8 @@ def _add_trade_settlement_payment_means_block(trade_settlement, sign, ns):
                 INVOICE['partner_bank_id']['bank_account_link'] == 'fixed' and
                 INVOICE['partner_bank_id']['fixed_journal_id']):
             partner_bank = INVOICE['partner_bank_id']['fixed_journal_id']['bank_account_id']
+        
+        # check if partner has bank and it is international bank
         if partner_bank and partner_bank.acc_type == 'iban':
             payment_means_bank_account = etree.SubElement(
                 payment_means,
