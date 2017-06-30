@@ -6,6 +6,7 @@ from StringIO import StringIO
 from lxml import etree
 from tempfile import NamedTemporaryFile
 from datetime import datetime
+import PyPDF2
 import logging
 import pdb
 
@@ -39,8 +40,32 @@ def generate_zugferd_xml(request):
         'udt': '{urn:un:unece:uncefact:data:standard:'
                 'UnqualifiedDataType:15}',
         }
+    
+    # get the page number
+    pdf_file = open('2.pdf', 'rb')
+    with open('2.pdf', 'rb') as fp:
+        pdf_content = fp.read()
+
+    read_pdf = PdfFileReader(pdf_file)
+    number_of_pages = read_pdf.getNumPages()
+    
     pdb.set_trace()
-    root = etree.Element(ns['rsm'] + 'CrossIndustryDocument', nsmap=nsmap)
+    is_zugferd = False
+    try:
+        
+        fd = StringIO(pdf_content)
+        pdf = PdfFileReader(fd)
+        pdf_root = pdf.trailer['/Root']
+        logger.debug('pdf_root=%s', pdf_root)
+        embeddedfiles = pdf_root['/Names']['/EmbeddedFiles']['/Names']
+        print "Embeded Files:  ", embeddedfiles
+        root = etree.Element(ns['rsm'] + 'CrossIndustryDocument', nsmap=nsmap)
+        for embeddedfile in embeddedfiles:
+            if embeddedfile == ZUGFERD_FILENAME:
+                is_zugferd = True
+                break
+    except:
+        pass
 
     # self._add_document_context_block(root, nsmap, ns)
     # self._add_header_block(root, ns)
@@ -53,7 +78,7 @@ def generate_zugferd_xml(request):
     # self._add_trade_settlement_block(trade_transaction, sign, ns)
 
     line_number = 0
-    for iline in self.invoice_line_ids:
+    for iline in number_of_pages:
         line_number += 1
         self._add_invoice_line_block(
             trade_transaction, iline, line_number, sign, ns)
