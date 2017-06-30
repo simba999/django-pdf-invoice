@@ -38,6 +38,131 @@ def _add_date(node_name, date_datetime, parent_node, ns):
         date_node, ns['udt'] + 'DateTimeString', format='102')
     date_node_str.text = date_datetime
 
+def _add_address_block(self, partner, parent_node, ns):
+    address = etree.SubElement(
+        parent_node, ns['ram'] + 'PostalTradeAddress')
+    if partner.zip:
+        address_zip = etree.SubElement(
+            address, ns['ram'] + 'PostcodeCode')
+        address_zip.text = partner.zip
+    if partner.street:
+        address_street = etree.SubElement(
+            address, ns['ram'] + 'LineOne')
+        address_street.text = partner.street
+        if partner.street2:
+            address_street2 = etree.SubElement(
+                address, ns['ram'] + 'LineTwo')
+            address_street2.text = partner.street2
+    if partner.city:
+        address_city = etree.SubElement(
+            address, ns['ram'] + 'CityName')
+        address_city.text = partner.city
+    if partner.country_id:
+        address_country = etree.SubElement(
+            address, ns['ram'] + 'CountryID')
+        address_country.text = partner.country_id.code
+
+def _add_trade_agreement_block(trade_transaction, ns):
+    trade_agreement = etree.SubElement(
+        trade_transaction,
+        ns['ram'] + 'ApplicableSupplyChainTradeAgreement')
+    company = INVOICE['company_id']
+    seller = etree.SubElement(
+        trade_agreement, ns['ram'] + 'SellerTradeParty')
+    seller_name = etree.SubElement(
+        seller, ns['ram'] + 'Name')
+    seller_name.text = company.name
+    # Only with EXTENDED profile
+    # self._add_trade_contact_block(
+    #    self.user_id.partner_id or company.partner_id, seller, ns)
+    _add_address_block(company.partner_id, seller, ns)
+    if company.vat:
+        seller_tax_reg = etree.SubElement(
+            seller, ns['ram'] + 'SpecifiedTaxRegistration')
+        seller_tax_reg_id = etree.SubElement(
+            seller_tax_reg, ns['ram'] + 'ID', schemeID='VA')
+        seller_tax_reg_id.text = company.vat
+    buyer = etree.SubElement(
+        trade_agreement, ns['ram'] + 'BuyerTradeParty')
+    if INVOICE['commercial_partner_id']['ref']:
+        buyer_id = etree.SubElement(
+            buyer, ns['ram'] + 'ID')
+        buyer_id.text = self.commercial_partner_id.ref
+    buyer_name = etree.SubElement(
+        buyer, ns['ram'] + 'Name')
+    buyer_name.text = self.commercial_partner_id.name
+    # Only with EXTENDED profile
+    # if self.commercial_partner_id != self.partner_id:
+    #    self._add_trade_contact_block(
+    #        self.partner_id, buyer, ns)
+    self._add_address_block(self.partner_id, buyer, ns)
+    if self.commercial_partner_id.vat:
+        buyer_tax_reg = etree.SubElement(
+            buyer, ns['ram'] + 'SpecifiedTaxRegistration')
+        buyer_tax_reg_id = etree.SubElement(
+            buyer_tax_reg, ns['ram'] + 'ID', schemeID='VA')
+        buyer_tax_reg_id.text = self.commercial_partner_id.vat
+
+    @api.multi
+    def _add_trade_delivery_block(self, trade_transaction, ns):
+        self.ensure_one()
+        trade_agreement = etree.SubElement(
+            trade_transaction,
+            ns['ram'] + 'ApplicableSupplyChainTradeDelivery')
+        return trade_agreement
+
+    @api.multi
+    def _add_trade_settlement_payment_means_block(
+            self, trade_settlement, sign, ns):
+        payment_means = etree.SubElement(
+            trade_settlement,
+            ns['ram'] + 'SpecifiedTradeSettlementPaymentMeans')
+        payment_means_code = etree.SubElement(
+            payment_means, ns['ram'] + 'TypeCode')
+        payment_means_info = etree.SubElement(
+            payment_means, ns['ram'] + 'Information')
+        if self.payment_mode_id:
+            payment_means_code.text =\
+                self.payment_mode_id.payment_method_id.unece_code
+            payment_means_info.text =\
+                self.payment_mode_id.note or self.payment_mode_id.name
+        else:
+            payment_means_code.text = '31'  # 31 = Wire transfer
+            payment_means_info.text = _('Wire transfer')
+            logger.warning(
+                'Missing payment mode on invoice ID %d. '
+                'Using 31 (wire transfer) as UNECE code as fallback '
+                'for payment mean',
+                self.id)
+        if payment_means_code.text in ['31', '42']:
+            partner_bank = self.partner_bank_id
+            if (
+                    not partner_bank and
+                    self.payment_mode_id and
+                    self.payment_mode_id.bank_account_link == 'fixed' and
+                    self.payment_mode_id.fixed_journal_id):
+                partner_bank =\
+                    self.payment_mode_id.fixed_journal_id.bank_account_id
+            if partner_bank and partner_bank.acc_type == 'iban':
+                payment_means_bank_account = etree.SubElement(
+                    payment_means,
+                    ns['ram'] + 'PayeePartyCreditorFinancialAccount')
+                iban = etree.SubElement(
+                    payment_means_bank_account, ns['ram'] + 'IBANID')
+                iban.text = partner_bank.sanitized_acc_number
+                if partner_bank.bank_bic:
+                    payment_means_bank = etree.SubElement(
+                        payment_means,
+                        ns['ram'] +
+                        'PayeeSpecifiedCreditorFinancialInstitution')
+                    payment_means_bic = etree.SubElement(
+                        payment_means_bank, ns['ram'] + 'BICID')
+                    payment_means_bic.text = partner_bank.bank_bic
+                    if partner_bank.bank_name:
+                        bank_name = etree.SubElement(
+                            payment_means_bank, ns['ram'] + 'Name')
+                        bank_name.text = partner_bank.bank_name
+
 def _add_document_context_block(root, nsmap, ns):
     doc_ctx = etree.SubElement(
         root, ns['rsm'] + 'SpecifiedExchangedDocumentContext')
@@ -105,17 +230,17 @@ def generate_zugferd_xml(request):
     _add_document_context_block(root, nsmap, ns)
     _add_header_block(root, ns)
 
-    xml_string = etree.tostring(
-        root, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-    
-    print "&&&&& XML :   ", xml_string
-
     trade_transaction = etree.SubElement(
         root, ns['rsm'] + 'SpecifiedSupplyChainTradeTransaction')
 
-    # self._add_trade_agreement_block(trade_transaction, ns)
-    # self._add_trade_delivery_block(trade_transaction, ns)
-    # self._add_trade_settlement_block(trade_transaction, sign, ns)
+    _add_trade_agreement_block(trade_transaction, ns)
+    _add_trade_delivery_block(trade_transaction, ns)
+    _add_trade_settlement_block(trade_transaction, sign, ns)
+
+    # print dummy data
+    xml_string = etree.tostring(
+        root, pretty_print=True, encoding='UTF-8', xml_declaration=True)
+    print "&&&&& XML :   ", xml_string
 
     # line_number = 0
     # for iline in number_of_pages:
