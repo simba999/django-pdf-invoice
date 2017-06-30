@@ -353,14 +353,18 @@ def _add_trade_settlement_payment_means_block(trade_settlement, sign, ns):
                     bank_name.text = partner_bank.bank_name
 
 def _add_document_context_block(root, nsmap, ns):
-    doc_ctx = etree.SubElement(
-        root, ns['rsm'] + 'SpecifiedExchangedDocumentContext')
+    """
+        /add context to xml root element/
+        set the invoice type
+        value can be "basic", "comfort" and "expanded"
+    """
+   
+    doc_ctx = etree.SubElement(root, ns['rsm'] + 'SpecifiedExchangedDocumentContext')
     if INVOICE['state'] not in ('open', 'paid'):
         test_indic = etree.SubElement(doc_ctx, ns['ram'] + 'TestIndicator')
         indic = etree.SubElement(test_indic, ns['udt'] + 'Indicator')
         indic.text = 'true'
-    ctx_param = etree.SubElement(
-        doc_ctx, ns['ram'] + 'GuidelineSpecifiedDocumentContextParameter')
+    ctx_param = etree.SubElement(doc_ctx, ns['ram'] + 'GuidelineSpecifiedDocumentContextParameter')
     ctx_param_id = etree.SubElement(ctx_param, ns['ram'] + 'ID')
     ctx_param_id.text = '%s:%s' % (nsmap['rsm'], ZUGFERD_LEVEL)
 
@@ -426,6 +430,7 @@ def generate_zugferd_xml(request):
     
     root = etree.Element(ns['rsm'] + 'CrossIndustryDocument', nsmap=nsmap)
     
+    # inspired from https://github.com/OCA/edi/blob/10.0/account_invoice_factur-x/models/account_invoice.py
     _add_document_context_block(root, nsmap, ns)
     _add_header_block(root, ns)
 
