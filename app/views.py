@@ -108,12 +108,12 @@ def _add_date(node_name, date_datetime, parent_node, ns):
     """
         add date to xml
         Params:
-        """
+        "
             node_name: node name to be added
             date_datetime: date value to be added
             parent_node: parent node
             ns: namespace for xml
-        """
+        "
     """
     date_node = etree.SubElement(parent_node, ns['ram'] + node_name)
     date_node_str = etree.SubElement(
@@ -124,11 +124,11 @@ def _add_address_block(partner, parent_node, ns):
     """
         add address to xml
         Params:
-        """
+        "
             partner: values to be saved
             partner_node: place where partner is saved
             ns: namespace for xml
-        """
+        "
     """
     address = etree.SubElement(
         parent_node, ns['ram'] + 'PostalTradeAddress')
@@ -207,9 +207,9 @@ def _add_trade_delivery_block(trade_transaction, ns):
     """
         add delivery information to xml
         Parms:
-        """
+        "
             trade_transaction: parent node
-        """
+        "
     """
     trade_agreement = etree.SubElement(
         trade_transaction,
@@ -220,11 +220,11 @@ def _add_trade_settlement_block(trade_transaction, sign, ns):
     """
         add settlement information to xml
         Parms:
-        """
+        "
             trade_transaction: parent node
             sign: [1: "invoice", -1: "refund"]
             ns: namespace for xml
-        """
+        "
     """
     ## Begin payment reference
     inv_currency_name = INVOICE['currency_id']['name']
@@ -356,11 +356,11 @@ def _add_trade_settlement_payment_means_block(trade_settlement, sign, ns):
     """
         add settlement payment information to xml
         Params: 
-        """
+        "
             trade_settlement: place where settlement payment information should be saved
             sign: [1: "invoice", -1: "refund"]
             ns: namespace for xml
-        """
+        "
     """
     payment_means = etree.SubElement(
         trade_settlement,
