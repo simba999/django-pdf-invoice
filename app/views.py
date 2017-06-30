@@ -136,18 +136,25 @@ def _add_address_block(partner, parent_node, ns):
         address_country.text = partner['country_id']
 
 def _add_trade_agreement_block(trade_transaction, ns):
+    """
+        add Seller and Buyer information to xml
+    """
     trade_agreement = etree.SubElement(
         trade_transaction,
         ns['ram'] + 'ApplicableSupplyChainTradeAgreement')
     company = INVOICE['company_id']
+
+    ## Begin seller block
     seller = etree.SubElement(
         trade_agreement, ns['ram'] + 'SellerTradeParty')
     seller_name = etree.SubElement(
         seller, ns['ram'] + 'Name')
     seller_name.text = company['name']
+    
     # Only with EXTENDED profile
     # INVOICE['_add_trade_contact_block(
     #    INVOICE['user_id.partner_id or company.partner_id, seller, ns)
+    # "illya"
     _add_address_block(company['partner_id'], seller, ns)
     if company['vat']:
         seller_tax_reg = etree.SubElement(
@@ -155,6 +162,8 @@ def _add_trade_agreement_block(trade_transaction, ns):
         seller_tax_reg_id = etree.SubElement(
             seller_tax_reg, ns['ram'] + 'ID', schemeID='VA')
         seller_tax_reg_id.text = company['vat']
+
+    ## Begin buyer block
     buyer = etree.SubElement(
         trade_agreement, ns['ram'] + 'BuyerTradeParty')
     if INVOICE['commercial_partner_id']['ref']:
@@ -354,11 +363,9 @@ def _add_trade_settlement_payment_means_block(trade_settlement, sign, ns):
 
 def _add_document_context_block(root, nsmap, ns):
     """
-        /add context to xml root element/
         set the invoice type
         value can be "basic", "comfort" and "expanded"
     """
-   
     doc_ctx = etree.SubElement(root, ns['rsm'] + 'SpecifiedExchangedDocumentContext')
     if INVOICE['state'] not in ('open', 'paid'):
         test_indic = etree.SubElement(doc_ctx, ns['ram'] + 'TestIndicator')
@@ -369,27 +376,38 @@ def _add_document_context_block(root, nsmap, ns):
     ctx_param_id.text = '%s:%s' % (nsmap['rsm'], ZUGFERD_LEVEL)
 
 def _add_header_block(root, ns):
-        header_doc = etree.SubElement(
-            root, ns['rsm'] + 'HeaderExchangedDocument')
-        header_doc_id = etree.SubElement(header_doc, ns['ram'] + 'ID')
-        if INVOICE['state'] in ('open', 'paid'):
-            header_doc_id.text = INVOICE['number']
-        else:
-            header_doc_id.text = INVOICE['state']
-        header_doc_name = etree.SubElement(header_doc, ns['ram'] + 'Name')
-        if INVOICE['type'] == 'out_refund':
-            header_doc_name.text = 'Refund'
-        else:
-            header_doc_name.text = 'Invoice'
-        header_doc_typecode = etree.SubElement(
-            header_doc, ns['ram'] + 'TypeCode')
-        header_doc_typecode.text = '380'
-        date_invoice_dt = time.strftime("%Y%m%d")
-        _add_date('IssueDateTime', date_invoice_dt, header_doc, ns)
-        if INVOICE['comment']:
-            note = etree.SubElement(header_doc, ns['ram'] + 'IncludedNote')
-            content_note = etree.SubElement(note, ns['ram'] + 'Content')
-            content_note.text = INVOICE['comment']
+    """
+        add header information to xml root element
+    """
+    header_doc = etree.SubElement(
+        root, ns['rsm'] + 'HeaderExchangedDocument')
+    header_doc_id = etree.SubElement(header_doc, ns['ram'] + 'ID')
+    
+    # if invoice state is set, then add invoice id
+    # else add the state
+    if INVOICE['state'] in ('open', 'paid'):
+        header_doc_id.text = INVOICE['number']
+    else:
+        header_doc_id.text = INVOICE['state']
+    header_doc_name = etree.SubElement(header_doc, ns['ram'] + 'Name')
+    if INVOICE['type'] == 'out_refund':
+        header_doc_name.text = 'Refund'
+    else:
+        header_doc_name.text = 'Invoice'
+    
+    header_doc_typecode = etree.SubElement(
+        header_doc, ns['ram'] + 'TypeCode')
+    header_doc_typecode.text = '380'
+
+    # get the today's date and add to root
+    date_invoice_dt = time.strftime("%Y%m%d")
+    _add_date('IssueDateTime', date_invoice_dt, header_doc, ns)
+
+    # add comment to xml
+    if INVOICE['comment']:
+        note = etree.SubElement(header_doc, ns['ram'] + 'IncludedNote')
+        content_note = etree.SubElement(note, ns['ram'] + 'Content')
+        content_note.text = INVOICE['comment']
 
 # Create your views here.
 def generate_zugferd_xml(request):
