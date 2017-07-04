@@ -537,6 +537,152 @@ def _check_xml_schema(xml_string, xsd_file):
             "cause of the problem : %s.") % unicode(e)
     return True
 
+def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
+    """
+        add invoice items into xml
+        Params:
+        "
+            trade_transaction: parent node
+            iline: each line of invoice table
+            line_number: line number
+            sign: [1: "invoice", -1: "refund"]
+            ns: namespace for xml
+        "
+    """
+    # deciaml palces for product price
+    pp_prec = DECIMAL_PLACES['product_price']
+    # deciaml palces for discount price
+    disc_prec = DECIMAL_PLACES['discount']
+    # deciaml palces for product price
+    qty_prec = DECIMAL_PLACES['product_unit_measure']
+    inv_currency_name = INVOICE['currency_id']['name']
+    line_item = etree.SubElement(
+        trade_transaction,
+        ns['ram'] + 'IncludedSupplyChainTradeLineItem')
+    line_doc = etree.SubElement(
+        line_item, ns['ram'] + 'AssociatedDocumentLineDocument')
+    etree.SubElement(
+        line_doc, ns['ram'] + 'LineID').text = unicode(line_number)
+    line_trade_agreement = etree.SubElement(
+        line_item,
+        ns['ram'] + 'SpecifiedSupplyChainTradeAgreement')
+    # convert gross price_unit to tax_excluded value
+    taxres = iline.invoice_line_tax_ids.compute_all(iline.price_unit)
+    gross_price_val = float_round(
+        taxres['total_excluded'], precision_digits=pp_prec)
+    # Use oline.price_subtotal/qty to compute net unit price to be sure
+    # to get a *tax_excluded* net unit price
+    if float_is_zero(iline.quantity, precision_digits=qty_prec):
+        net_price_val = 0.0
+    else:
+        net_price_val = float_round(
+            iline.price_subtotal / float(iline.quantity),
+            precision_digits=pp_prec)
+    gross_price = etree.SubElement(
+        line_trade_agreement,
+        ns['ram'] + 'GrossPriceProductTradePrice')
+    gross_price_amount = etree.SubElement(
+        gross_price, ns['ram'] + 'ChargeAmount',
+        currencyID=inv_currency_name)
+    gross_price_amount.text = unicode(gross_price_val)
+    fc_discount = float_compare(
+        iline.discount, 0.0, precision_digits=disc_prec)
+    if fc_discount in [-1, 1]:
+        trade_allowance = etree.SubElement(
+            gross_price, ns['ram'] + 'AppliedTradeAllowanceCharge')
+        charge_indic = etree.SubElement(
+            trade_allowance, ns['ram'] + 'ChargeIndicator')
+        indicator = etree.SubElement(
+            charge_indic, ns['udt'] + 'Indicator')
+        if fc_discount == 1:
+            indicator.text = 'false'
+        else:
+            indicator.text = 'true'
+        actual_amount = etree.SubElement(
+            trade_allowance, ns['ram'] + 'ActualAmount',
+            currencyID=inv_currency_name)
+        actual_amount_val = float_round(
+            gross_price_val - net_price_val, precision_digits=pp_prec)
+        actual_amount.text = unicode(abs(actual_amount_val))
+
+    net_price = etree.SubElement(
+        line_trade_agreement, ns['ram'] + 'NetPriceProductTradePrice')
+    net_price_amount = etree.SubElement(
+        net_price, ns['ram'] + 'ChargeAmount',
+        currencyID=inv_currency_name)
+    net_price_amount.text = unicode(net_price_val)
+    line_trade_delivery = etree.SubElement(
+        line_item, ns['ram'] + 'SpecifiedSupplyChainTradeDelivery')
+    if iline.uom_id and iline.uom_id.unece_code:
+        unitCode = iline.uom_id.unece_code
+    else:
+        unitCode = 'C62'
+        if not iline.uom_id:
+            logger.warning(
+                "No unit of measure on invoice line '%s', "
+                "using C62 (piece) as fallback",
+                iline.name)
+        else:
+            logger.warning(
+                'Missing UNECE Code on unit of measure %s, '
+                'using C62 (piece) as fallback',
+                iline.uom_id.name)
+    billed_qty = etree.SubElement(
+        line_trade_delivery, ns['ram'] + 'BilledQuantity',
+        unitCode=unitCode)
+    billed_qty.text = unicode(iline.quantity * sign)
+    line_trade_settlement = etree.SubElement(
+        line_item, ns['ram'] + 'SpecifiedSupplyChainTradeSettlement')
+    if iline.invoice_line_tax_ids:
+        for tax in iline.invoice_line_tax_ids:
+            trade_tax = etree.SubElement(
+                line_trade_settlement,
+                ns['ram'] + 'ApplicableTradeTax')
+            trade_tax_typecode = etree.SubElement(
+                trade_tax, ns['ram'] + 'TypeCode')
+            if not tax.unece_type_code:
+                raise UserError(_(
+                    "Missing UNECE Tax Type on tax '%s'")
+                    % tax.name)
+            trade_tax_typecode.text = tax.unece_type_code
+            trade_tax_categcode = etree.SubElement(
+                trade_tax, ns['ram'] + 'CategoryCode')
+            if not tax.unece_categ_code:
+                raise UserError(_(
+                    "Missing UNECE Tax Category on tax '%s'")
+                    % tax.name)
+            trade_tax_categcode.text = tax.unece_categ_code
+            if tax.amount_type == 'percent':
+                trade_tax_percent = etree.SubElement(
+                    trade_tax, ns['ram'] + 'ApplicablePercent')
+                trade_tax_percent.text = unicode(tax.amount)
+    subtotal = etree.SubElement(
+        line_trade_settlement,
+        ns['ram'] + 'SpecifiedTradeSettlementMonetarySummation')
+    subtotal_amount = etree.SubElement(
+        subtotal, ns['ram'] + 'LineTotalAmount',
+        currencyID=inv_currency_name)
+    subtotal_amount.text = unicode(iline.price_subtotal * sign)
+    trade_product = etree.SubElement(
+        line_item, ns['ram'] + 'SpecifiedTradeProduct')
+    if iline.product_id:
+        if iline.product_id.barcode:
+            barcode = etree.SubElement(
+                trade_product, ns['ram'] + 'GlobalID', schemeID='0160')
+            # 0160 = GS1 Global Trade Item Number (GTIN, EAN)
+            barcode.text = iline.product_id.barcode
+        if iline.product_id.default_code:
+            product_code = etree.SubElement(
+                trade_product, ns['ram'] + 'SellerAssignedID')
+            product_code.text = iline.product_id.default_code
+    product_name = etree.SubElement(
+        trade_product, ns['ram'] + 'Name')
+    product_name.text = iline.name
+    if iline.product_id and iline.product_id.description_sale:
+        product_desc = etree.SubElement(
+            trade_product, ns['ram'] + 'Description')
+        product_desc.text = iline.product_id.description_sale
+
 # Create your views here.
 def generate_zugferd_xml(request):
     """
