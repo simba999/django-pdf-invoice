@@ -587,26 +587,26 @@ def generate_zugferd_xml(request):
     _add_trade_delivery_block(trade_transaction, ns)
     _add_trade_settlement_block(trade_transaction, sign, ns)
 
-    # echo dummy data
-    xml_string = etree.tostring(
-        root, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-    isXml = _check_xml_schema(
-        xml_string, 'data/ZUGFeRD1p0.xsd')
-    print "&&&&& XML Flag :   ", isXml
-
-    # line_number = 0
-    # for iline in INVOCE_LINE_IDS:
-    #     line_number += 1
-    #     _add_invoice_line_block(
-    #         trade_transaction, iline, line_number, sign, ns)
-
+    # # echo dummy data
     # xml_string = etree.tostring(
     #     root, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-    # _check_xml_schema(
+    # isXml = _check_xml_schema(
     #     xml_string, 'data/ZUGFeRD1p0.xsd')
-    # logger.debug(
-    #     'ZUGFeRD XML file generated for invoice ID')
-    # logger.debug(xml_string)
+    # print "&&&&& XML Flag :   ", isXml
+
+    line_number = 0
+    for iline in INVOCE_LINE_IDS:
+        line_number += 1
+        _add_invoice_line_block(
+            trade_transaction, iline, line_number, sign, ns)
+
+    xml_string = etree.tostring(
+        root, pretty_print=True, encoding='UTF-8', xml_declaration=True)
+    _check_xml_schema(
+        xml_string, 'data/ZUGFeRD1p0.xsd')
+    logger.debug(
+        'ZUGFeRD XML file generated for invoice ID')
+    logger.debug(xml_string)
     print xml_string
     return HttpResponse("ok")
 
