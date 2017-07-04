@@ -9,6 +9,7 @@ from datetime import datetime
 import PyPDF2
 import logging
 import time
+import pdb
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,7 @@ INVOICE = {
     'payment_mode_id': {
         'note': 'infomation about payment mode',
         'payment_method_id': {
-            'unece_code': '',
+            'unece_code': 'CBFBUY',
             'name': ''
         }
     },
@@ -99,6 +100,51 @@ INVOICE = {
     'amount_tax': 120,
     'amount_total': 375,
     'residual': 56
+}
+
+INVOCE_LINE_IDS = [
+    {
+        'price_unit': '',
+        'quantity': 2,
+        'price_subtotal': 3,
+        'discount': '',
+        'name': 'Item A',
+        'product_id': {
+            'barcode': '',
+            'default_code': '',
+            'description_sale': ''
+        },
+        'invoice_line_tax_ids': {
+            'unece_type_code': '',
+            'unece_categ_code': '',
+            'amount_type': 'percent',
+            'amonut': ''
+        }
+    },
+    {
+        'price_unit': '',
+        'quantity': 2,
+        'price_subtotal': 3,
+        'discount': '',
+        'name': 'Item A',
+        'product_id': {
+            'barcode': '',
+            'default_code': '',
+            'description_sale': ''
+        },
+        'invoice_line_tax_ids': {
+            'unece_type_code': '',
+            'unece_categ_code': '',
+            'amount_type': '',
+            'amonut': ''
+        }
+    }
+]
+
+DECIMAL_PLACES = {
+    'product_price': '3',
+    'discount': '3',
+    'product_unit_measure': '2'
 }
 
 # root of xml document
@@ -458,6 +504,39 @@ def _add_header_block(root, ns):
         content_note = etree.SubElement(note, ns['ram'] + 'Content')
         content_note.text = INVOICE['comment']
 
+def _check_xml_schema(xml_string, xsd_file):
+    """
+        Validate the XML file against the XSD
+        Param:
+        "
+            xml_string: xml string to be checked
+            xml_file: sample invoice xml file
+        "
+    """
+    xsd_string = open(xsd_file, 'rb')
+    print xsd_string
+    # pdb.set_trace()
+    xsd_etree_obj = etree.parse(xsd_string)
+    official_schema = etree.XMLSchema(xsd_etree_obj)
+    
+    try:
+        t = etree.parse(StringIO(xml_string))
+        official_schema.assertValid(t)
+    except Exception, e:
+        # if the validation of the XSD fails, we arrive here
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            "The XML file is invalid against the XML Schema Definition")
+        logger.warning(xml_string)
+        logger.warning(e)
+        raise (
+            "The generated XML file is not valid against the official "
+            "XML Schema Definition. The generated XML file and the "
+            "full error have been written in the server logs. "
+            "Here is the error, which may give you an idea on the "
+            "cause of the problem : %s.") % unicode(e)
+    return True
+
 # Create your views here.
 def generate_zugferd_xml(request):
     """
@@ -508,32 +587,33 @@ def generate_zugferd_xml(request):
     _add_trade_delivery_block(trade_transaction, ns)
     _add_trade_settlement_block(trade_transaction, sign, ns)
 
-    # print dummy data
+    # echo dummy data
     xml_string = etree.tostring(
         root, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-    print "&&&&& XML :   ", xml_string
+    isXml = _check_xml_schema(
+        xml_string, 'data/ZUGFeRD1p0.xsd')
+    print "&&&&& XML Flag :   ", isXml
 
     # line_number = 0
-    # for iline in number_of_pages:
+    # for iline in INVOCE_LINE_IDS:
     #     line_number += 1
-    #     INVOICE['_add_invoice_line_block(
+    #     _add_invoice_line_block(
     #         trade_transaction, iline, line_number, sign, ns)
 
     # xml_string = etree.tostring(
     #     root, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-    # # INVOICE['_check_xml_schema(
-    # #     xml_string, 'account_invoice_factur-x/data/ZUGFeRD1p0.xsd')
+    # _check_xml_schema(
+    #     xml_string, 'data/ZUGFeRD1p0.xsd')
     # logger.debug(
     #     'ZUGFeRD XML file generated for invoice ID')
     # logger.debug(xml_string)
-    # return xml_string
+    print xml_string
     return HttpResponse("ok")
 
 def pdf_is_zugfered(request, filename):
     """
         check if the pdf file is ZUGFeRE format
     """
-    pdf_file = open(filename, 'rb')
     with open(filename, 'rb') as fp:
         pdf_content = fp.read()
 
