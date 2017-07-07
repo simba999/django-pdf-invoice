@@ -108,7 +108,7 @@ INVOICE = {
 
 INVOCE_LINE_IDS = [
     {
-        'price_unit': '',
+        'price_unit': 'MTK',
         'quantity': 2,
         'price_subtotal': 3,
         'discount': '',
@@ -127,7 +127,7 @@ INVOCE_LINE_IDS = [
         }
     },
     {
-        'price_unit': '',
+        'price_unit': 'MTK',
         'quantity': 2,
         'price_subtotal': 3,
         'discount': '',
@@ -237,7 +237,7 @@ def _compute_amount(self_array, base_amount, price_unit, quantity=1.0, product=N
     if self_array['amount_type'] == 'division' and not self_array['price_include']:
         return base_amount / (1 - self_array['amount'] / 100) - base_amount
 
-def compute_all(self_array, price_unit, currency=None, quantity=1.0, product=None, partner=None):
+def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=None, partner=None):
     """ 
         Returns all information required to apply taxes (in self + their children in case of a tax goup).
             We consider the sequence of the parent for group of taxes.
@@ -258,6 +258,7 @@ def compute_all(self_array, price_unit, currency=None, quantity=1.0, product=Non
             }]
         } 
     """
+    pdb.set_trace()
     if len(self_array) == 0:
         company_id = env.user.company_id
     else:
@@ -302,7 +303,7 @@ def compute_all(self_array, price_unit, currency=None, quantity=1.0, product=Non
     for tax in self_array:
         if tax['amount_type'] == 'group':
             children = tax['children_tax_ids']['base_values'] = (total_excluded, total_included, base)
-            ret = compute_all(children, price_unit, currency, quantity, product, partner)
+            ret = _compute_all(children, price_unit, currency, quantity, product, partner)
             total_excluded = ret['total_excluded']
             base = ret['base'] if tax['include_base_amount'] else base
             total_included = ret['total_included']
@@ -666,7 +667,6 @@ def _check_xml_schema(xml_string, xsd_file):
     """
     xsd_string = open(xsd_file, 'rb')
     print xsd_string
-    # pdb.set_trace()
     xsd_etree_obj = etree.parse(xsd_string)
     official_schema = etree.XMLSchema(xsd_etree_obj)
     
@@ -718,7 +718,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
         line_item,
         ns['ram'] + 'SpecifiedSupplyChainTradeAgreement')
     # convert gross price_unit to tax_excluded value
-    taxres = iline.invoice_line_tax_ids.compute_all(iline.price_unit)
+    taxres = _compute_all(iline['invoice_line_tax_ids'], iline['price_unit'])
     gross_price_val = round(
         taxres['total_excluded'], precision_digits=pp_prec)
     # Use oline.price_subtotal/qty to compute net unit price to be sure
@@ -917,7 +917,6 @@ def pdf_is_zugfered(request, filename):
     read_pdf = PdfFileReader(pdf_file)
     number_of_pages = read_pdf.getNumPages()
     
-    pdb.set_trace()
     is_zugferd = False
     try:
         fd = StringIO(pdf_content)
