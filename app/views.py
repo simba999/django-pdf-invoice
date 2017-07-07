@@ -124,11 +124,35 @@ INVOCE_LINE_IDS = [
             'default_code': '',
             'description_sale': ''
         },
-        'invoice_line_tax_ids': {
-            'unece_type_code': '',
-            'unece_categ_code': '',
-            'amount_type': 'percent',
-            'amonut': ''
+        'invoice_line_tax_ids': [
+            {
+                'unece_type_code': '',
+                'unece_categ_code': '',
+                'amount_type': 'group',
+                'amonut': ''
+            },
+            {
+                'unece_type_code': '',
+                'unece_categ_code': '',
+                'amount_type': 'group',
+                'amonut': ''
+            }
+        ],
+        'company_id': {
+            'name': 'IT Light',
+            'vat': '19',
+            'tax_calculation_rounding_method': '',
+            'partner_id': {
+                'zip': '66032',
+                'street': 'street A',
+                'street2': 'Tower',
+                'country_id': 'US',
+                'city': 'New York'
+            },
+            'currency_id': {
+                'name': 'eur',
+                'decimal_places': 3
+            }
         }
     },
     {
@@ -143,11 +167,35 @@ INVOCE_LINE_IDS = [
             'default_code': '',
             'description_sale': ''
         },
-        'invoice_line_tax_ids': {
-            'unece_type_code': '',
-            'unece_categ_code': '',
-            'amount_type': '',
-            'amonut': ''
+        'invoice_line_tax_ids': [
+            {
+                'unece_type_code': '',
+                'unece_categ_code': '',
+                'amount_type': 'group',
+                'amonut': ''
+            },
+            {
+                'unece_type_code': '',
+                'unece_categ_code': '',
+                'amount_type': 'group',
+                'amonut': ''
+            }
+        ],
+        'company_id': {
+            'name': 'IT Light',
+            'vat': '19',
+            'tax_calculation_rounding_method': '',
+            'partner_id': {
+                'zip': '66032',
+                'street': 'street A',
+                'street2': 'Tower',
+                'country_id': 'US',
+                'city': 'New York'
+            },
+            'currency_id': {
+                'name': 'eur',
+                'decimal_places': 3
+            }
         }
     }
 ]
@@ -438,8 +486,7 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
             }]
         } 
     """
-    pdb.set_trace()
-    self_array = test_data
+    self_array = INVOCE_LINE_IDS
     if len(self_array) == 0:
         company_id = env.user.company_id
     else:
@@ -899,7 +946,6 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
     line_trade_agreement = etree.SubElement(
         line_item,
         ns['ram'] + 'SpecifiedSupplyChainTradeAgreement')
-    pdb.set_trace()
     # convert gross price_unit to tax_excluded value
     taxres = _compute_all(iline['invoice_line_tax_ids'], iline['price_unit'])
     gross_price_val = round(
