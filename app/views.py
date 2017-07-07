@@ -274,6 +274,23 @@ env = {
 # root of xml document
 root = None
 
+def float_compare(f1, f2, precision_digits):
+    """
+        compare two float numbers with precision digits
+    """
+    first = '%0.*f' % (precision_digits, f1)
+    second = '%0.*f' % (precision_digits, f2)
+    if first == second:
+        return True
+    else:
+        return False
+
+def float_is_zero(f1, precision_digits):
+    """
+        compare if float numbers is zero with precision digits
+    """
+    return float_compare(f1, 0, precision_digits)
+
 def _add_date(node_name, date_datetime, parent_node, ns):
     """
         add date to xml
@@ -371,7 +388,10 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
     if len(self_array) == 0:
         company_id = env.user.company_id
     else:
-        company_id = self_array[0]['company_id']
+        if isinstance(self_array, list):
+            company_id = self_array[0]['company_id']
+        else:
+            company_id = self_array['company_id']
     if not currency:
         currency = company_id['currency_id']
     taxes = []
@@ -417,7 +437,7 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
         count += 1
         if tax['amount_type'] == 'group':
             tax['children_tax_ids']['base_values'] = (total_excluded, total_included, base)
-            children = [tax]
+            children = tax
             print "children ret **************"
             ret = _compute_all(children, price_unit, currency, quantity, product, partner)
             total_excluded = ret['total_excluded']
