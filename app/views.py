@@ -113,7 +113,7 @@ INVOCE_LINE_IDS = [
         'price_subtotal': 3,
         'discount': '',
         'name': 'Item A',
-        'sequence': 1
+        'sequence': 1,
         'product_id': {
             'barcode': '',
             'default_code': '',
@@ -132,6 +132,7 @@ INVOCE_LINE_IDS = [
         'price_subtotal': 3,
         'discount': '',
         'name': 'Item A',
+        'sequence': 2,
         'product_id': {
             'barcode': '',
             'default_code': '',
@@ -313,9 +314,9 @@ def compute_all(self_array, price_unit, currency=None, quantity=1.0, product=Non
         if not round_tax:
             tax_amount = round(tax_amount, prec)
         else:
-            tax_amount = currency.round(tax_amount)
+            tax_amount = round(tax_amount, currency['decimal_places'])
 
-        if tax.price_include:
+        if tax['price_include']:
             total_excluded -= tax_amount
             base -= tax_amount
         else:
@@ -324,7 +325,7 @@ def compute_all(self_array, price_unit, currency=None, quantity=1.0, product=Non
         # Keep base amount used for the current tax
         tax_base = base
 
-        if tax.include_base_amount:
+        if tax['include_base_amount']:
             base += tax_amount
 
         if partner:
@@ -345,8 +346,8 @@ def compute_all(self_array, price_unit, currency=None, quantity=1.0, product=Non
 
     return {
         'taxes': sorted(taxes, key=lambda k: k['sequence']),
-        'total_excluded': currency.round(total_excluded) if round_total else total_excluded,
-        'total_included': currency.round(total_included) if round_total else total_included,
+        'total_excluded': round(total_excluded, currency['decimal_places']) if round_total else total_excluded,
+        'total_included': round(total_included, currency['decimal_places']) if round_total else total_included,
         'base': base,
     }
 
