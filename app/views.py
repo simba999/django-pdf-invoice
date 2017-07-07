@@ -39,6 +39,10 @@ INVOICE = {
             'street2': 'Tower',
             'country_id': 'US',
             'city': 'New York'
+        },
+        'currency_id': {
+            'name': 'eur',
+            'decimal_places': 3
         }
     },
     'partner_id': {
@@ -102,6 +106,7 @@ INVOICE = {
     'amount_untaxed': 235,
     'amount_tax': 120,
     'amount_total': 375,
+    'amount_type': 'group',
     'residual': 56,
     'include_base_amount': 3.5
 }
@@ -157,9 +162,184 @@ env = {
     'user': {
         'company_id': '213'
     },
-    'base_values': 12,
+    'base_values': (160, 120, 60),
     'round': True
 }
+
+test_data = [
+    {
+        'state': 'open',
+        'number': '123456',
+        'comment': 'I like Illya because he is perfect guy',
+        'type': 'our_invoice',
+        'company_id': {
+            'name': 'IT Light',
+            'vat': '19',
+            'tax_calculation_rounding_method': '',
+            'partner_id': {
+                'zip': '66032',
+                'street': 'street A',
+                'street2': 'Tower',
+                'country_id': 'US',
+                'city': 'New York'
+            },
+            'currency_id': {
+                'name': 'eur',
+                'decimal_places': 3
+            }
+        },
+        'partner_id': {
+            'zip': '66032',
+            'street': 'street A',
+            'street2': 'Tower',
+            'country_id': 'US',
+            'city': 'New York'
+        },
+        'commercial_partner_id': {
+            'ref': 'comercial_partner_id_reference',
+            'name': 'Big Company',
+            'vat': '28'
+        },
+        'partner_bank_id': {
+            'bank_account_link': 'fixed',
+            'fixed_journal_id': {
+                'bank_account_id': '123457'
+            }
+        },
+        'currency_id': {
+            'name': 'eur',
+            'decimal_places': 3
+        },
+        'tax_line_ids': [
+            {
+                'tax_id': {
+                    'unece_type_code': '',
+                    'unece_categ_code': '',
+                    'amount_type': 'kg'
+                },
+                'amount': 1,
+                'base': 1
+            },
+            {
+                'tax_id': {
+                    'unece_type_code': '',
+                    'unece_categ_code': '',
+                    'amount_type': 'kg'
+                },
+                'amount': 1,
+                'base': 1
+            }
+        ],
+        'payment_mode_id': {
+            'note': 'infomation about payment mode',
+            'payment_method_id': {
+                'unece_code': 'CBFBUY',
+                'name': ''
+            }
+        },
+        'payment_term_id': {
+            'name': 'paypal'
+        },
+        'fiscal_position_id': {
+            'note': 'information about fiscal postion'
+        },
+        'children_tax_ids': {
+        },
+        'date_due': '2017213',
+        'amount_untaxed': 235,
+        'amount_tax': 120,
+        'amount_total': 375,
+        'amount_type': 'group',
+        'residual': 56,
+        'include_base_amount': 3.5
+    },
+    {
+        'state': 'open',
+        'number': '123456',
+        'comment': 'I like Illya because he is perfect guy',
+        'type': 'our_invoice',
+        'company_id': {
+            'name': 'IT Light',
+            'vat': '19',
+            'tax_calculation_rounding_method': '',
+            'currency_id': {
+                'name': 'eur',
+                'decimal_places': 3
+            },
+            'partner_id': {
+                'zip': '66032',
+                'street': 'street A',
+                'street2': 'Tower',
+                'country_id': 'US',
+                'city': 'New York'
+            }
+        },
+        'partner_id': {
+            'zip': '66032',
+            'street': 'street A',
+            'street2': 'Tower',
+            'country_id': 'US',
+            'city': 'New York'
+        },
+        'commercial_partner_id': {
+            'ref': 'comercial_partner_id_reference',
+            'name': 'Big Company',
+            'vat': '28'
+        },
+        'partner_bank_id': {
+            'bank_account_link': 'fixed',
+            'fixed_journal_id': {
+                'bank_account_id': '123457'
+            }
+        },
+        'currency_id': {
+            'name': 'eur',
+            'decimal_places': 3
+        },
+        'tax_line_ids': [
+            {
+                'tax_id': {
+                    'unece_type_code': '',
+                    'unece_categ_code': '',
+                    'amount_type': 'kg'
+                },
+                'amount': 1,
+                'base': 1
+            },
+            {
+                'tax_id': {
+                    'unece_type_code': '',
+                    'unece_categ_code': '',
+                    'amount_type': 'kg'
+                },
+                'amount': 1,
+                'base': 1
+            }
+        ],
+        'payment_mode_id': {
+            'note': 'infomation about payment mode',
+            'payment_method_id': {
+                'unece_code': 'CBFBUY',
+                'name': ''
+            }
+        },
+        'payment_term_id': {
+            'name': 'paypal'
+        },
+        'fiscal_position_id': {
+            'note': 'information about fiscal postion'
+        },
+        'children_tax_ids': {
+        },
+        'date_due': '2017213',
+        'amount_untaxed': 235,
+        'amount_tax': 120,
+        'amount_total': 375,
+        'amount_type': 'group',
+        'residual': 56,
+        'include_base_amount': 3.5
+    }
+]
 
 # root of xml document
 root = None
@@ -259,6 +439,7 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
         } 
     """
     pdb.set_trace()
+    self_array = test_data
     if len(self_array) == 0:
         company_id = env.user.company_id
     else:
@@ -302,7 +483,8 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
     # case of group taxes.
     for tax in self_array:
         if tax['amount_type'] == 'group':
-            children = tax['children_tax_ids']['base_values'] = (total_excluded, total_included, base)
+            tax['children_tax_ids']['base_values'] = (total_excluded, total_included, base)
+            children = tax['children_tax_ids']
             ret = _compute_all(children, price_unit, currency, quantity, product, partner)
             total_excluded = ret['total_excluded']
             base = ret['base'] if tax['include_base_amount'] else base
@@ -717,6 +899,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
     line_trade_agreement = etree.SubElement(
         line_item,
         ns['ram'] + 'SpecifiedSupplyChainTradeAgreement')
+    pdb.set_trace()
     # convert gross price_unit to tax_excluded value
     taxres = _compute_all(iline['invoice_line_tax_ids'], iline['price_unit'])
     gross_price_val = round(
