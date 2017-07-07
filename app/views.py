@@ -32,6 +32,7 @@ INVOICE = {
     'company_id': {
         'name': 'IT Light',
         'vat': '19',
+        'tax_calculation_rounding_method': '',
         'partner_id': {
             'zip': '66032',
             'street': 'street A',
@@ -95,14 +96,14 @@ INVOICE = {
     'fiscal_position_id': {
         'note': 'information about fiscal postion'
     },
+    'children_tax_ids': {
+    },
     'date_due': '2017213',
     'amount_untaxed': 235,
     'amount_tax': 120,
     'amount_total': 375,
     'residual': 56,
-    'user': {
-        'company_Id': ''
-    }
+    'include_base_amount': 3.5
 }
 
 INVOCE_LINE_IDS = [
@@ -112,6 +113,7 @@ INVOCE_LINE_IDS = [
         'price_subtotal': 3,
         'discount': '',
         'name': 'Item A',
+        'sequence': 1
         'product_id': {
             'barcode': '',
             'default_code': '',
@@ -148,6 +150,14 @@ DECIMAL_PLACES = {
     'product_price': '3',
     'discount': '3',
     'product_unit_measure': '2'
+}
+
+env = {
+    'user': {
+        'company_id': '213'
+    },
+    'base_values': 12,
+    'round': True
 }
 
 # root of xml document
@@ -202,7 +212,31 @@ def _add_address_block(partner, parent_node, ns):
             address, ns['ram'] + 'CountryID')
         address_country.text = partner['country_id']
 
-def compute_all(price_unit, currency=None, quantity=1.0, product=None, partner=None):
+def _compute_amount(self_array, base_amount, price_unit, quantity=1.0, product=None, partner=None):
+    """ Returns the amount of a single tax. base_amount is the actual amount on which the tax is applied, which is
+        price_unit * quantity eventually affected by previous taxes (if tax is include_base_amount XOR price_include)
+    """
+    if self_array['amount_type'] == 'fixed':
+        # Use copysign to take into account the sign of the base amount which includes the sign
+        # of the quantity and the sign of the price_unit
+        # Amount is the fixed price for the tax, it can be negative
+        # Base amount included the sign of the quantity and the sign of the unit price and when
+        # a product is returned, it can be done either by changing the sign of quantity or by changing the
+        # sign of the price unit.
+        # When the price unit is equal to 0, the sign of the quantity is absorbed in base_amount then
+        # a "else" case is needed.
+        if base_amount:
+            return math.copysign(quantity, base_amount) * self_array['amount']
+        else:
+            return quantity * self.amount
+    if (self_array['amount_type'] == 'percent' and not self_array['price_include']) or (self_array['amount_type'] == 'division' and self_array['price_include']):
+        return base_amount * self.amount / 100
+    if self_array['amount_type'] == 'percent' and self_array['price_include']:
+        return base_amount - (base_amount / (1 + self_array['amount'] / 100))
+    if self_array['amount_type'] == 'division' and not self_array['price_include']:
+        return base_amount / (1 - self_array['amount'] / 100) - base_amount
+
+def compute_all(self_array, price_unit, currency=None, quantity=1.0, product=None, partner=None):
     """ 
         Returns all information required to apply taxes (in self + their children in case of a tax goup).
             We consider the sequence of the parent for group of taxes.
@@ -223,12 +257,12 @@ def compute_all(price_unit, currency=None, quantity=1.0, product=None, partner=N
             }]
         } 
     """
-    if len(self) == 0:
-        company_id = self.env.user.company_id
+    if len(self_array) == 0:
+        company_id = env.user.company_id
     else:
-        company_id = self[0].company_id
+        company_id = self_array[0]['company_id']
     if not currency:
-        currency = company_id.currency_id
+        currency = company_id['currency_id']
     taxes = []
     # By default, for each tax, tax amount will first be computed
     # and rounded at the 'Account' decimal precision for each
@@ -239,22 +273,22 @@ def compute_all(price_unit, currency=None, quantity=1.0, product=None, partner=N
     # precision when we round the tax amount for each line (we use
     # the 'Account' decimal precision + 5), and that way it's like
     # rounding after the sum of the tax amounts of each line
-    prec = currency.decimal_places
+    prec = currency['decimal_places']
 
     # In some cases, it is necessary to force/prevent the rounding of the tax and the total
     # amounts. For example, in SO/PO line, we don't want to round the price unit at the
     # precision of the currency.
     # The context key 'round' allows to force the standard behavior.
-    round_tax = False if company_id.tax_calculation_rounding_method == 'round_globally' else True
+    round_tax = False if company_id['tax_calculation_rounding_method'] == 'round_globally' else True
     round_total = True
-    if 'round' in self.env.context:
-        round_tax = bool(self.env.context['round'])
-        round_total = bool(self.env.context['round'])
+    if 'round' in env:
+        round_tax = bool(env['round'])
+        round_total = bool(env['round'])
 
     if not round_tax:
         prec += 5
 
-    base_values = self.env.context.get('base_values')
+    base_values = env.get('base_values')
     if not base_values:
         total_excluded = total_included = base = round(price_unit * quantity, prec)
     else:
@@ -264,18 +298,18 @@ def compute_all(price_unit, currency=None, quantity=1.0, product=None, partner=N
     # search. However, the search method is overridden in account.tax in order to add a domain
     # depending on the context. This domain might filter out some taxes from self, e.g. in the
     # case of group taxes.
-    for tax in self.sorted(key=lambda r: r.sequence):
-        if tax.amount_type == 'group':
-            children = tax.children_tax_ids.with_context(base_values=(total_excluded, total_included, base))
-            ret = children.compute_all(price_unit, currency, quantity, product, partner)
+    for tax in self_array:
+        if tax['amount_type'] == 'group':
+            children = tax['children_tax_ids']['base_values'] = (total_excluded, total_included, base)
+            ret = compute_all(children, price_unit, currency, quantity, product, partner)
             total_excluded = ret['total_excluded']
-            base = ret['base'] if tax.include_base_amount else base
+            base = ret['base'] if tax['include_base_amount'] else base
             total_included = ret['total_included']
             tax_amount = total_included - total_excluded
             taxes += ret['taxes']
             continue
 
-        tax_amount = tax._compute_amount(base, price_unit, quantity, product, partner)
+        tax_amount = _compute_amount(tax, base, price_unit, quantity, product, partner)
         if not round_tax:
             tax_amount = round(tax_amount, prec)
         else:
@@ -293,15 +327,20 @@ def compute_all(price_unit, currency=None, quantity=1.0, product=None, partner=N
         if tax.include_base_amount:
             base += tax_amount
 
+        if partner:
+            tax['lang'] = partner['lang']
+        else:
+            tax = {}
+
         taxes.append({
-            'id': tax.id,
-            'name': tax.with_context(**{'lang': partner.lang} if partner else {}).name,
+            'id': tax['id'],
+            'name': tax['name'],
             'amount': tax_amount,
             'base': tax_base,
-            'sequence': tax.sequence,
-            'account_id': tax.account_id.id,
-            'refund_account_id': tax.refund_account_id.id,
-            'analytic': tax.analytic,
+            'sequence': tax['sequence'],
+            'account_id': tax['account_id']['id'],
+            'refund_account_id': tax['refund_account_id']['id'],
+            'analytic': tax['analytic'],
         })
 
     return {
