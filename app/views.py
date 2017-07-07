@@ -129,31 +129,52 @@ INVOCE_LINE_IDS = [
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
-                'amonut': ''
+                'amonut': '',
+                'company_id': {
+                    'name': 'IT Light',
+                    'vat': '1911',
+                    'tax_calculation_rounding_method': '',
+                    'partner_id': {
+                        'zip': '66032',
+                        'street': 'street A',
+                        'street2': 'Tower',
+                        'country_id': 'US',
+                        'city': 'New York'
+                    },
+                    'currency_id': {
+                        'name': 'eur',
+                        'decimal_places': 3
+                    }
+                },
+                'children_tax_ids': {
+                }
             },
             {
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
-                'amonut': ''
+                'amonut': '',
+                'company_id': {
+                    'name': 'IT Light',
+                    'vat': '1912',
+                    'tax_calculation_rounding_method': '',
+                    'partner_id': {
+                        'zip': '66032',
+                        'street': 'street A',
+                        'street2': 'Tower',
+                        'country_id': 'US',
+                        'city': 'New York'
+                    },
+                    'currency_id': {
+                        'name': 'eur',
+                        'decimal_places': 3
+                    }
+                },
+                'children_tax_ids': {
+                }
             }
         ],
-        'company_id': {
-            'name': 'IT Light',
-            'vat': '19',
-            'tax_calculation_rounding_method': '',
-            'partner_id': {
-                'zip': '66032',
-                'street': 'street A',
-                'street2': 'Tower',
-                'country_id': 'US',
-                'city': 'New York'
-            },
-            'currency_id': {
-                'name': 'eur',
-                'decimal_places': 3
-            }
-        }
+        
     },
     {
         'price_unit': 'MTK',
@@ -172,18 +193,54 @@ INVOCE_LINE_IDS = [
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
-                'amonut': ''
+                'amonut': '',
+                'company_id': {
+                    'name': 'IT Light',
+                    'vat': '1921',
+                    'tax_calculation_rounding_method': '',
+                    'partner_id': {
+                        'zip': '66032',
+                        'street': 'street A',
+                        'street2': 'Tower',
+                        'country_id': 'US',
+                        'city': 'New York'
+                    },
+                    'currency_id': {
+                        'name': 'eur',
+                        'decimal_places': 3
+                    }
+                },
+                'children_tax_ids': {
+                }
             },
             {
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
-                'amonut': ''
+                'amonut': '',
+                'company_id': {
+                    'name': 'IT Light',
+                    'vat': '1922',
+                    'tax_calculation_rounding_method': '',
+                    'partner_id': {
+                        'zip': '66032',
+                        'street': 'street A',
+                        'street2': 'Tower',
+                        'country_id': 'US',
+                        'city': 'New York'
+                    },
+                    'currency_id': {
+                        'name': 'eur',
+                        'decimal_places': 3
+                    }
+                },
+                'children_tax_ids': {
+                }
             }
         ],
         'company_id': {
             'name': 'IT Light',
-            'vat': '19',
+            'vat': '192',
             'tax_calculation_rounding_method': '',
             'partner_id': {
                 'zip': '66032',
@@ -213,181 +270,6 @@ env = {
     'base_values': (160, 120, 60),
     'round': True
 }
-
-test_data = [
-    {
-        'state': 'open',
-        'number': '123456',
-        'comment': 'I like Illya because he is perfect guy',
-        'type': 'our_invoice',
-        'company_id': {
-            'name': 'IT Light',
-            'vat': '19',
-            'tax_calculation_rounding_method': '',
-            'partner_id': {
-                'zip': '66032',
-                'street': 'street A',
-                'street2': 'Tower',
-                'country_id': 'US',
-                'city': 'New York'
-            },
-            'currency_id': {
-                'name': 'eur',
-                'decimal_places': 3
-            }
-        },
-        'partner_id': {
-            'zip': '66032',
-            'street': 'street A',
-            'street2': 'Tower',
-            'country_id': 'US',
-            'city': 'New York'
-        },
-        'commercial_partner_id': {
-            'ref': 'comercial_partner_id_reference',
-            'name': 'Big Company',
-            'vat': '28'
-        },
-        'partner_bank_id': {
-            'bank_account_link': 'fixed',
-            'fixed_journal_id': {
-                'bank_account_id': '123457'
-            }
-        },
-        'currency_id': {
-            'name': 'eur',
-            'decimal_places': 3
-        },
-        'tax_line_ids': [
-            {
-                'tax_id': {
-                    'unece_type_code': '',
-                    'unece_categ_code': '',
-                    'amount_type': 'kg'
-                },
-                'amount': 1,
-                'base': 1
-            },
-            {
-                'tax_id': {
-                    'unece_type_code': '',
-                    'unece_categ_code': '',
-                    'amount_type': 'kg'
-                },
-                'amount': 1,
-                'base': 1
-            }
-        ],
-        'payment_mode_id': {
-            'note': 'infomation about payment mode',
-            'payment_method_id': {
-                'unece_code': 'CBFBUY',
-                'name': ''
-            }
-        },
-        'payment_term_id': {
-            'name': 'paypal'
-        },
-        'fiscal_position_id': {
-            'note': 'information about fiscal postion'
-        },
-        'children_tax_ids': {
-        },
-        'date_due': '2017213',
-        'amount_untaxed': 235,
-        'amount_tax': 120,
-        'amount_total': 375,
-        'amount_type': 'group',
-        'residual': 56,
-        'include_base_amount': 3.5
-    },
-    {
-        'state': 'open',
-        'number': '123456',
-        'comment': 'I like Illya because he is perfect guy',
-        'type': 'our_invoice',
-        'company_id': {
-            'name': 'IT Light',
-            'vat': '19',
-            'tax_calculation_rounding_method': '',
-            'currency_id': {
-                'name': 'eur',
-                'decimal_places': 3
-            },
-            'partner_id': {
-                'zip': '66032',
-                'street': 'street A',
-                'street2': 'Tower',
-                'country_id': 'US',
-                'city': 'New York'
-            }
-        },
-        'partner_id': {
-            'zip': '66032',
-            'street': 'street A',
-            'street2': 'Tower',
-            'country_id': 'US',
-            'city': 'New York'
-        },
-        'commercial_partner_id': {
-            'ref': 'comercial_partner_id_reference',
-            'name': 'Big Company',
-            'vat': '28'
-        },
-        'partner_bank_id': {
-            'bank_account_link': 'fixed',
-            'fixed_journal_id': {
-                'bank_account_id': '123457'
-            }
-        },
-        'currency_id': {
-            'name': 'eur',
-            'decimal_places': 3
-        },
-        'tax_line_ids': [
-            {
-                'tax_id': {
-                    'unece_type_code': '',
-                    'unece_categ_code': '',
-                    'amount_type': 'kg'
-                },
-                'amount': 1,
-                'base': 1
-            },
-            {
-                'tax_id': {
-                    'unece_type_code': '',
-                    'unece_categ_code': '',
-                    'amount_type': 'kg'
-                },
-                'amount': 1,
-                'base': 1
-            }
-        ],
-        'payment_mode_id': {
-            'note': 'infomation about payment mode',
-            'payment_method_id': {
-                'unece_code': 'CBFBUY',
-                'name': ''
-            }
-        },
-        'payment_term_id': {
-            'name': 'paypal'
-        },
-        'fiscal_position_id': {
-            'note': 'information about fiscal postion'
-        },
-        'children_tax_ids': {
-        },
-        'date_due': '2017213',
-        'amount_untaxed': 235,
-        'amount_tax': 120,
-        'amount_total': 375,
-        'amount_type': 'group',
-        'residual': 56,
-        'include_base_amount': 3.5
-    }
-]
 
 # root of xml document
 root = None
@@ -486,7 +368,6 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
             }]
         } 
     """
-    self_array = INVOCE_LINE_IDS
     if len(self_array) == 0:
         company_id = env.user.company_id
     else:
@@ -528,10 +409,16 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
     # search. However, the search method is overridden in account.tax in order to add a domain
     # depending on the context. This domain might filter out some taxes from self, e.g. in the
     # case of group taxes.
+    count = 0
     for tax in self_array:
+        print "count:  ", count
+        print self_array
+        pdb.set_trace()
+        count += 1
         if tax['amount_type'] == 'group':
             tax['children_tax_ids']['base_values'] = (total_excluded, total_included, base)
-            children = tax['children_tax_ids']
+            children = [tax]
+            print "children ret **************"
             ret = _compute_all(children, price_unit, currency, quantity, product, partner)
             total_excluded = ret['total_excluded']
             base = ret['base'] if tax['include_base_amount'] else base
