@@ -127,13 +127,13 @@ INVOCE_LINE_IDS = [
         },
         'uom_id': {
             'name': 'uom1',
-            'unece_code': 'unece111'
+            'unece_code': '111'
         },
         'invoice_line_tax_ids': [
             {
                 'id': 'tax_1',
                 'name': 'invoice line1',
-                'unece_categ_code': 'unece11',
+                'unece_categ_code': '11',
                 'unece_type_code': 'unece_category_11',
                 'amount_type': 'group',
                 'amount': 3,
@@ -163,7 +163,7 @@ INVOCE_LINE_IDS = [
                             'id': 'a1023'
                         },
                         'analytic': True,
-                        'unece_type_code': 'unece11',
+                        'unece_type_code': '11',
                         'unece_categ_code': 'unece_category_11',
                         'amount_type': 'fixed',
                         'amount': 2,
@@ -201,7 +201,7 @@ INVOCE_LINE_IDS = [
                 'amount': 2,
                 'id': 'tax_2',
                 'name': 'invoice line3',
-                'unece_type_code': 'unece12',
+                'unece_type_code': '12',
                 'include_base_amount': True,
                 'company_id': {
                     'name': 'IT Light',
@@ -228,7 +228,7 @@ INVOCE_LINE_IDS = [
                         'account_id': {
                             'id': 'a1023'
                         },
-                        'unece_type_code': 'unece12',
+                        'unece_type_code': '12',
                         'unece_categ_code': 'unece_category_12',
                         'amount_type': 'percent',
                         'amount': 1,
@@ -278,7 +278,7 @@ INVOCE_LINE_IDS = [
         },
         'uom_id': {
             'name': 'uom2',
-            'unece_code': 'unece222'
+            'unece_code': '222'
         },
         'invoice_line_tax_ids': [
             {
@@ -287,7 +287,7 @@ INVOCE_LINE_IDS = [
                 'name': 'Belgium VAT grid1',
                 'sequence': '10',
                 'analytic': True,
-                'unece_type_code': 'unece21',
+                'unece_type_code': '21',
                 'unece_categ_code': 'unece_category_21',
                 'include_base_amount': True,
                 'amount_type': 'group',
@@ -325,7 +325,7 @@ INVOCE_LINE_IDS = [
                         'account_id': {
                             'id': 'a1023'
                         },
-                        'unece_type_code': 'unece21',
+                        'unece_type_code': '21',
                         'unece_categ_code': 'unece_category_21',
                         'amount_type': 'fixed',
                         'amount': 4,
@@ -361,7 +361,7 @@ INVOCE_LINE_IDS = [
             {
                 'id': 'tax_3',
                 'name': 'invoice line3',
-                'unece_type_code': 'unece22',
+                'unece_type_code': '22',
                 'unece_categ_code': 'unece_category_222',
                 'amount_type': 'group',
                 'include_base_amount': True,
@@ -392,7 +392,7 @@ INVOCE_LINE_IDS = [
                         'account_id': {
                             'id': 'a1023'
                         },
-                        'unece_type_code': 'unece22',
+                        'unece_type_code': '22',
                         'unece_categ_code': 'unece_category_22',
                         'amount_type': 'percent',
                         'amount': 1,
