@@ -127,6 +127,7 @@ INVOCE_LINE_IDS = [
         },
         'invoice_line_tax_ids': [
             {
+                'id': 'tax_1',
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
@@ -150,6 +151,12 @@ INVOCE_LINE_IDS = [
                 'children_tax_ids': [
                     {
                         'id': 'tax_1',
+                        'name': 'Belgium VAT grid1',
+                        'sequence': '10',
+                        'account_id': {
+                            'id': 'a1023'
+                        },
+                        'analytic': True,
                         'unece_type_code': '',
                         'unece_categ_code': '',
                         'amount_type': 'fixed',
@@ -187,6 +194,7 @@ INVOCE_LINE_IDS = [
                 'unece_categ_code': '',
                 'amount_type': 'group',
                 'amount': 2,
+                'id': 'tax_2',
                 'company_id': {
                     'name': 'IT Light',
                     'vat': '1912',
@@ -206,12 +214,24 @@ INVOCE_LINE_IDS = [
                 'children_tax_ids': [
                     {
                         'id': 'tax_2',
+                        'name': 'Belgium VAT grid1',
+                        'sequence': '10',
+                        'analytic': True,
+                        'account_id': {
+                            'id': 'a1023'
+                        },
                         'unece_type_code': '',
                         'unece_categ_code': '',
                         'amount_type': 'percent',
                         'amount': 1,
                         'price_include': True,
                         'include_base_amount': True,
+                        'refund_account_id': {
+                            'id': 'p200'
+                        },
+                        'chart_template_id': {
+                            'id': 'indian_chart_template_standard'
+                        },
                         'company_id': {
                             'name': 'IT Light',
                             'vat': '1911',
@@ -249,6 +269,10 @@ INVOCE_LINE_IDS = [
         },
         'invoice_line_tax_ids': [
             {
+                'id': 'tax_3',
+                'name': 'Belgium VAT grid1',
+                'sequence': '10',
+                'analytic': True,
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
@@ -257,6 +281,12 @@ INVOCE_LINE_IDS = [
                     'name': 'IT Light',
                     'vat': '1911',
                     'tax_calculation_rounding_method': '',
+                    'refund_account_id': {
+                        'id': 'p200'
+                    },
+                    'chart_template_id': {
+                        'id': 'indian_chart_template_standard'
+                    },
                     'partner_id': {
                         'zip': '66032',
                         'street': 'street A',
@@ -271,12 +301,25 @@ INVOCE_LINE_IDS = [
                 },
                 'children_tax_ids': [
                     {
+                        'id': 'tax_3',
+                        'name': 'Belgium VAT grid1',
+                        'sequence': '10',
+                        'analytic': True,
+                        'account_id': {
+                            'id': 'a1023'
+                        },
                         'unece_type_code': '',
                         'unece_categ_code': '',
                         'amount_type': 'fixed',
                         'amount': 4,
                         'price_include': True,
                         'include_base_amount': True,
+                        'refund_account_id': {
+                            'id': 'p200'
+                        },
+                        'chart_template_id': {
+                            'id': 'indian_chart_template_standard'
+                        },
                         'company_id': {
                             'name': 'IT Light',
                             'vat': '1911',
@@ -299,6 +342,7 @@ INVOCE_LINE_IDS = [
                 
             },
             {
+                'id': 'tax_3',
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
@@ -321,12 +365,25 @@ INVOCE_LINE_IDS = [
                 },
                 'children_tax_ids': [
                     {
+                        'id': 'tax_3',
+                        'name': 'Belgium VAT grid1',
+                        'sequence': '10',
+                        'analytic': True,
+                        'account_id': {
+                            'id': 'a1023'
+                        },
                         'unece_type_code': '',
                         'unece_categ_code': '',
                         'amount_type': 'percent',
                         'amount': 1,
                         'price_include': True,
                         'include_base_amount': True,
+                        'refund_account_id': {
+                            'id': 'p200'
+                        },
+                        'chart_template_id': {
+                            'id': 'indian_chart_template_standard'
+                        },
                         'company_id': {
                             'name': 'IT Light',
                             'vat': '1911',
@@ -438,7 +495,6 @@ def _compute_amount(self_array, base_amount, price_unit, quantity=1.0, product=N
     """ Returns the amount of a single tax. base_amount is the actual amount on which the tax is applied, which is
         price_unit * quantity eventually affected by previous taxes (if tax is include_base_amount XOR price_include)
     """
-    pdb.set_trace()
     if self_array['amount_type'] == 'fixed':
         # Use copysign to take into account the sign of the base amount which includes the sign
         # of the quantity and the sign of the price_unit
@@ -542,7 +598,6 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
 
         tax_amount = _compute_amount(tax, base, price_unit, quantity, product, partner)
         print "*** tax_amount:  ", tax_amount
-        pdb.set_trace()
         if not round_tax:
             tax_amount = round(tax_amount, prec)
         else:
@@ -563,7 +618,7 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
         if partner:
             tax['lang'] = partner['lang']
         else:
-            tax = {}
+            tax['lang'] = {}
 
         taxes.append({
             'id': tax['id'],
