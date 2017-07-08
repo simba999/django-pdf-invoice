@@ -9,6 +9,7 @@ from datetime import datetime
 import PyPDF2
 import logging
 import time
+import math
 import pdb
 
 logger = logging.getLogger(__name__)
@@ -129,7 +130,7 @@ INVOCE_LINE_IDS = [
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
-                'amonut': '',
+                'amount': 3,
                 'company_id': {
                     'name': 'IT Light',
                     'vat': '1911',
@@ -146,14 +147,46 @@ INVOCE_LINE_IDS = [
                         'decimal_places': 3
                     }
                 },
-                'children_tax_ids': {
-                }
+                'children_tax_ids': [
+                    {
+                        'id': 'tax_1',
+                        'unece_type_code': '',
+                        'unece_categ_code': '',
+                        'amount_type': 'fixed',
+                        'amount': 2,
+                        'price_include': True,
+                        'include_base_amount': True,
+                        'refund_account_id': {
+                            'id': 'p200'
+                        },
+                        'chart_template_id': {
+                            'id': 'indian_chart_template_standard'
+                        },
+                        'company_id': {
+                            'name': 'IT Light',
+                            'vat': '1911',
+                            'tax_calculation_rounding_method': '',
+                            'partner_id': {
+                                'zip': '66032',
+                                'street': 'street A',
+                                'street2': 'Tower',
+                                'country_id': 'US',
+                                'city': 'New York'
+                            },
+                            'currency_id': {
+                                'name': 'eur',
+                                'decimal_places': 3
+                            }
+                        },
+                        'children_tax_ids': []
+                    }
+                ]
             },
             {
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
-                'amonut': '',
+                'amount': 2,
                 'company_id': {
                     'name': 'IT Light',
                     'vat': '1912',
@@ -170,8 +203,34 @@ INVOCE_LINE_IDS = [
                         'decimal_places': 3
                     }
                 },
-                'children_tax_ids': {
-                }
+                'children_tax_ids': [
+                    {
+                        'id': 'tax_2',
+                        'unece_type_code': '',
+                        'unece_categ_code': '',
+                        'amount_type': 'percent',
+                        'amount': 1,
+                        'price_include': True,
+                        'include_base_amount': True,
+                        'company_id': {
+                            'name': 'IT Light',
+                            'vat': '1911',
+                            'tax_calculation_rounding_method': '',
+                            'partner_id': {
+                                'zip': '66032',
+                                'street': 'street A',
+                                'street2': 'Tower',
+                                'country_id': 'US',
+                                'city': 'New York'
+                            },
+                            'currency_id': {
+                                'name': 'eur',
+                                'decimal_places': 3
+                            }
+                        },
+                        'children_tax_ids': []
+                    }
+                ]
             }
         ],
         
@@ -182,7 +241,7 @@ INVOCE_LINE_IDS = [
         'price_subtotal': 3,
         'discount': '',
         'name': 'Item A',
-        'sequence': 2,
+        'sequence': 1,
         'product_id': {
             'barcode': '',
             'default_code': '',
@@ -193,10 +252,10 @@ INVOCE_LINE_IDS = [
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
-                'amonut': '',
+                'amount': 2,
                 'company_id': {
                     'name': 'IT Light',
-                    'vat': '1921',
+                    'vat': '1911',
                     'tax_calculation_rounding_method': '',
                     'partner_id': {
                         'zip': '66032',
@@ -210,17 +269,43 @@ INVOCE_LINE_IDS = [
                         'decimal_places': 3
                     }
                 },
-                'children_tax_ids': {
-                }
+                'children_tax_ids': [
+                    {
+                        'unece_type_code': '',
+                        'unece_categ_code': '',
+                        'amount_type': 'fixed',
+                        'amount': 4,
+                        'price_include': True,
+                        'include_base_amount': True,
+                        'company_id': {
+                            'name': 'IT Light',
+                            'vat': '1911',
+                            'tax_calculation_rounding_method': '',
+                            'partner_id': {
+                                'zip': '66032',
+                                'street': 'street A',
+                                'street2': 'Tower',
+                                'country_id': 'US',
+                                'city': 'New York'
+                            },
+                            'currency_id': {
+                                'name': 'eur',
+                                'decimal_places': 3
+                            }
+                        },
+                        'children_tax_ids': []
+                    }
+                ]
+                
             },
             {
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
-                'amonut': '',
+                'amount': 2,
                 'company_id': {
                     'name': 'IT Light',
-                    'vat': '1922',
+                    'vat': '1912',
                     'tax_calculation_rounding_method': '',
                     'partner_id': {
                         'zip': '66032',
@@ -234,26 +319,35 @@ INVOCE_LINE_IDS = [
                         'decimal_places': 3
                     }
                 },
-                'children_tax_ids': {
-                }
+                'children_tax_ids': [
+                    {
+                        'unece_type_code': '',
+                        'unece_categ_code': '',
+                        'amount_type': 'percent',
+                        'amount': 1,
+                        'price_include': True,
+                        'include_base_amount': True,
+                        'company_id': {
+                            'name': 'IT Light',
+                            'vat': '1911',
+                            'tax_calculation_rounding_method': '',
+                            'partner_id': {
+                                'zip': '66032',
+                                'street': 'street A',
+                                'street2': 'Tower',
+                                'country_id': 'US',
+                                'city': 'New York'
+                            },
+                            'currency_id': {
+                                'name': 'eur',
+                                'decimal_places': 3
+                            }
+                        },
+                        'children_tax_ids': []
+                    }
+                ]
             }
-        ],
-        'company_id': {
-            'name': 'IT Light',
-            'vat': '192',
-            'tax_calculation_rounding_method': '',
-            'partner_id': {
-                'zip': '66032',
-                'street': 'street A',
-                'street2': 'Tower',
-                'country_id': 'US',
-                'city': 'New York'
-            },
-            'currency_id': {
-                'name': 'eur',
-                'decimal_places': 3
-            }
-        }
+        ],   
     }
 ]
 
@@ -344,6 +438,7 @@ def _compute_amount(self_array, base_amount, price_unit, quantity=1.0, product=N
     """ Returns the amount of a single tax. base_amount is the actual amount on which the tax is applied, which is
         price_unit * quantity eventually affected by previous taxes (if tax is include_base_amount XOR price_include)
     """
+    pdb.set_trace()
     if self_array['amount_type'] == 'fixed':
         # Use copysign to take into account the sign of the base amount which includes the sign
         # of the quantity and the sign of the price_unit
@@ -385,13 +480,11 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
             }]
         } 
     """
+    # pdb.set_trace()
     if len(self_array) == 0:
         company_id = env.user.company_id
     else:
-        if isinstance(self_array, list):
-            company_id = self_array[0]['company_id']
-        else:
-            company_id = self_array['company_id']
+        company_id = self_array[0]['company_id']
     if not currency:
         currency = company_id['currency_id']
     taxes = []
@@ -433,13 +526,13 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
     for tax in self_array:
         print "count:  ", count
         print self_array
-        pdb.set_trace()
         count += 1
         if tax['amount_type'] == 'group':
-            tax['children_tax_ids']['base_values'] = (total_excluded, total_included, base)
-            children = tax
+            tax['children_tax_ids'][0]['base_values'] = (total_excluded, total_included, base)
+            children = tax['children_tax_ids']
             print "children ret **************"
             ret = _compute_all(children, price_unit, currency, quantity, product, partner)
+            print "****** RET: ", ret
             total_excluded = ret['total_excluded']
             base = ret['base'] if tax['include_base_amount'] else base
             total_included = ret['total_included']
@@ -448,6 +541,8 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
             continue
 
         tax_amount = _compute_amount(tax, base, price_unit, quantity, product, partner)
+        print "*** tax_amount:  ", tax_amount
+        pdb.set_trace()
         if not round_tax:
             tax_amount = round(tax_amount, prec)
         else:
