@@ -132,6 +132,7 @@ INVOCE_LINE_IDS = [
                 'unece_categ_code': '',
                 'amount_type': 'group',
                 'amount': 3,
+                'include_base_amount': True,
                 'company_id': {
                     'name': 'IT Light',
                     'vat': '1911',
@@ -195,6 +196,7 @@ INVOCE_LINE_IDS = [
                 'amount_type': 'group',
                 'amount': 2,
                 'id': 'tax_2',
+                'include_base_amount': True,
                 'company_id': {
                     'name': 'IT Light',
                     'vat': '1912',
@@ -261,6 +263,7 @@ INVOCE_LINE_IDS = [
         'price_subtotal': 3,
         'discount': '',
         'name': 'Item A',
+        'include_base_amount': True,
         'sequence': 1,
         'product_id': {
             'barcode': '',
@@ -275,8 +278,10 @@ INVOCE_LINE_IDS = [
                 'analytic': True,
                 'unece_type_code': '',
                 'unece_categ_code': '',
+                'include_base_amount': True,
                 'amount_type': 'group',
                 'amount': 2,
+                'include_base_amount': True,
                 'company_id': {
                     'name': 'IT Light',
                     'vat': '1911',
@@ -305,6 +310,7 @@ INVOCE_LINE_IDS = [
                         'name': 'Belgium VAT grid1',
                         'sequence': '10',
                         'analytic': True,
+                        'include_base_amount': True,
                         'account_id': {
                             'id': 'a1023'
                         },
@@ -346,6 +352,7 @@ INVOCE_LINE_IDS = [
                 'unece_type_code': '',
                 'unece_categ_code': '',
                 'amount_type': 'group',
+                'include_base_amount': True,
                 'amount': 2,
                 'company_id': {
                     'name': 'IT Light',
@@ -369,6 +376,7 @@ INVOCE_LINE_IDS = [
                         'name': 'Belgium VAT grid1',
                         'sequence': '10',
                         'analytic': True,
+                        'include_base_amount': True,
                         'account_id': {
                             'id': 'a1023'
                         },
