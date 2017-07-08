@@ -117,7 +117,7 @@ INVOCE_LINE_IDS = [
         'price_unit': 'MTK',
         'quantity': 2,
         'price_subtotal': 3,
-        'discount': '',
+        'discount': 3,
         'name': 'Item A',
         'sequence': 1,
         'product_id': {
@@ -125,11 +125,16 @@ INVOCE_LINE_IDS = [
             'default_code': '',
             'description_sale': ''
         },
+        'uom_id': {
+            'name': 'uom1',
+            'unece_code': 'unece111'
+        },
         'invoice_line_tax_ids': [
             {
                 'id': 'tax_1',
-                'unece_type_code': '',
-                'unece_categ_code': '',
+                'name': 'invoice line1',
+                'unece_categ_code': 'unece11',
+                'unece_type_code': 'unece_category_11',
                 'amount_type': 'group',
                 'amount': 3,
                 'include_base_amount': True,
@@ -158,8 +163,8 @@ INVOCE_LINE_IDS = [
                             'id': 'a1023'
                         },
                         'analytic': True,
-                        'unece_type_code': '',
-                        'unece_categ_code': '',
+                        'unece_type_code': 'unece11',
+                        'unece_categ_code': 'unece_category_11',
                         'amount_type': 'fixed',
                         'amount': 2,
                         'price_include': True,
@@ -191,11 +196,12 @@ INVOCE_LINE_IDS = [
                 ]
             },
             {
-                'unece_type_code': '',
-                'unece_categ_code': '',
+                'unece_categ_code': 'unece_category_12',
                 'amount_type': 'group',
                 'amount': 2,
                 'id': 'tax_2',
+                'name': 'invoice line3',
+                'unece_type_code': 'unece12',
                 'include_base_amount': True,
                 'company_id': {
                     'name': 'IT Light',
@@ -222,8 +228,8 @@ INVOCE_LINE_IDS = [
                         'account_id': {
                             'id': 'a1023'
                         },
-                        'unece_type_code': '',
-                        'unece_categ_code': '',
+                        'unece_type_code': 'unece12',
+                        'unece_categ_code': 'unece_category_12',
                         'amount_type': 'percent',
                         'amount': 1,
                         'price_include': True,
@@ -261,7 +267,7 @@ INVOCE_LINE_IDS = [
         'price_unit': 'MTK',
         'quantity': 2,
         'price_subtotal': 3,
-        'discount': '',
+        'discount': 3,
         'name': 'Item A',
         'include_base_amount': True,
         'sequence': 1,
@@ -270,14 +276,19 @@ INVOCE_LINE_IDS = [
             'default_code': '',
             'description_sale': ''
         },
+        'uom_id': {
+            'name': 'uom2',
+            'unece_code': 'unece222'
+        },
         'invoice_line_tax_ids': [
             {
                 'id': 'tax_3',
+                'name': 'invoice line2',
                 'name': 'Belgium VAT grid1',
                 'sequence': '10',
                 'analytic': True,
-                'unece_type_code': '',
-                'unece_categ_code': '',
+                'unece_type_code': 'unece21',
+                'unece_categ_code': 'unece_category_21',
                 'include_base_amount': True,
                 'amount_type': 'group',
                 'amount': 2,
@@ -314,8 +325,8 @@ INVOCE_LINE_IDS = [
                         'account_id': {
                             'id': 'a1023'
                         },
-                        'unece_type_code': '',
-                        'unece_categ_code': '',
+                        'unece_type_code': 'unece21',
+                        'unece_categ_code': 'unece_category_21',
                         'amount_type': 'fixed',
                         'amount': 4,
                         'price_include': True,
@@ -349,8 +360,9 @@ INVOCE_LINE_IDS = [
             },
             {
                 'id': 'tax_3',
-                'unece_type_code': '',
-                'unece_categ_code': '',
+                'name': 'invoice line3',
+                'unece_type_code': 'unece22',
+                'unece_categ_code': 'unece_category_222',
                 'amount_type': 'group',
                 'include_base_amount': True,
                 'amount': 2,
@@ -380,8 +392,8 @@ INVOCE_LINE_IDS = [
                         'account_id': {
                             'id': 'a1023'
                         },
-                        'unece_type_code': '',
-                        'unece_categ_code': '',
+                        'unece_type_code': 'unece22',
+                        'unece_categ_code': 'unece_category_22',
                         'amount_type': 'percent',
                         'amount': 1,
                         'price_include': True,
@@ -417,9 +429,9 @@ INVOCE_LINE_IDS = [
 ]
 
 DECIMAL_PLACES = {
-    'product_price': '3',
-    'discount': '3',
-    'product_unit_measure': '2'
+    'product_price': 3,
+    'discount': 3,
+    'product_unit_measure': 2
 }
 
 env = {
@@ -974,12 +986,12 @@ def _check_xml_schema(xml_string, xsd_file):
             "The XML file is invalid against the XML Schema Definition")
         logger.warning(xml_string)
         logger.warning(e)
-        raise (
+        raise Exception(
             "The generated XML file is not valid against the official "
             "XML Schema Definition. The generated XML file and the "
             "full error have been written in the server logs. "
             "Here is the error, which may give you an idea on the "
-            "cause of the problem : %s.") % unicode(e)
+            "cause of the problem : %s." % unicode(e)) 
     return True
 
 def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
@@ -1014,7 +1026,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
     # convert gross price_unit to tax_excluded value
     taxres = _compute_all(iline['invoice_line_tax_ids'], iline['price_unit'])
     gross_price_val = round(
-        taxres['total_excluded'], precision_digits=pp_prec)
+        taxres['total_excluded'], pp_prec)
     # Use oline.price_subtotal/qty to compute net unit price to be sure
     # to get a *tax_excluded* net unit price
     if float_is_zero(iline['quantity'], precision_digits=qty_prec):
@@ -1022,7 +1034,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
     else:
         net_price_val = round(
             iline['price_subtotal'] / float(iline['quantity']),
-            precision_digits=pp_prec)
+            pp_prec)
     gross_price = etree.SubElement(
         line_trade_agreement,
         ns['ram'] + 'GrossPriceProductTradePrice')
@@ -1047,7 +1059,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
             trade_allowance, ns['ram'] + 'ActualAmount',
             currencyID=inv_currency_name)
         actual_amount_val = round(
-            gross_price_val - net_price_val, precision_digits=pp_prec)
+            gross_price_val - net_price_val, pp_prec)
         actual_amount.text = unicode(abs(actual_amount_val))
 
     net_price = etree.SubElement(
@@ -1078,7 +1090,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
     billed_qty.text = unicode(iline['quantity'] * sign)
     line_trade_settlement = etree.SubElement(
         line_item, ns['ram'] + 'SpecifiedSupplyChainTradeSettlement')
-    if iline['invoice_line_tax_id']:
+    if iline['invoice_line_tax_ids']:
         for tax in iline['invoice_line_tax_ids']:
             trade_tax = etree.SubElement(
                 line_trade_settlement,
@@ -1086,18 +1098,18 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
             trade_tax_typecode = etree.SubElement(
                 trade_tax, ns['ram'] + 'TypeCode')
             if not tax['unece_type_code']:
-                raise UserError(_(
-                    "Missing UNECE Tax Type on tax '%s'")
-                    % tax.name)
+                raise Exception(
+                    "Missing UNECE Tax Type on tax '%s'"
+                    % tax['name'])
             trade_tax_typecode.text = tax['unece_type_code']
             trade_tax_categcode = etree.SubElement(
                 trade_tax, ns['ram'] + 'CategoryCode')
-            if not tax.unece_categ_code:
-                raise UserError(_(
-                    "Missing UNECE Tax Category on tax '%s'")
-                    % tax.name)
+            if not tax['unece_categ_code']:
+                raise Exception(
+                    "Missing UNECE Tax Category on tax '%s'"
+                    % tax['name'])
             trade_tax_categcode.text = tax['unece_categ_code']
-            if tax.amount_type == 'percent':
+            if tax['amount_type'] == 'percent':
                 trade_tax_percent = etree.SubElement(
                     trade_tax, ns['ram'] + 'ApplicablePercent')
                 trade_tax_percent.text = unicode(tax['amount'])
@@ -1110,7 +1122,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
     subtotal_amount.text = unicode(iline['price_subtotal'] * sign)
     trade_product = etree.SubElement(
         line_item, ns['ram'] + 'SpecifiedTradeProduct')
-    if iline.product_id:
+    if iline['product_id']:
         if iline['product_id']['barcode']:
             barcode = etree.SubElement(
                 trade_product, ns['ram'] + 'GlobalID', schemeID='0160')
@@ -1122,7 +1134,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
             product_code.text = iline['product_id']['default_code']
     product_name = etree.SubElement(
         trade_product, ns['ram'] + 'Name')
-    product_name.text = iline.name
+    product_name.text = iline['name']
     if iline['product_id'] and iline['product_id']['default_code']:
         product_desc = etree.SubElement(
             trade_product, ns['ram'] + 'Description')
