@@ -1,0 +1,151 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rsm:CrossIndustryDocument xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12" xmlns:rsm="urn:ferd:CrossIndustryDocument:invoice:1p0" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <rsm:SpecifiedExchangedDocumentContext>
+    <ram:GuidelineSpecifiedDocumentContextParameter>
+      <ram:ID>urn:ferd:CrossIndustryDocument:invoice:1p0:comfort</ram:ID>
+    </ram:GuidelineSpecifiedDocumentContextParameter>
+  </rsm:SpecifiedExchangedDocumentContext>
+  <rsm:HeaderExchangedDocument>
+    <ram:ID>123456</ram:ID>
+    <ram:Name>Invoice</ram:Name>
+    <ram:TypeCode>380</ram:TypeCode>
+    <ram:IssueDateTime>
+      <udt:DateTimeString format="102">20170708</udt:DateTimeString>
+    </ram:IssueDateTime>
+    <ram:IncludedNote>
+      <ram:Content>I like Illya because he is perfect guy</ram:Content>
+    </ram:IncludedNote>
+  </rsm:HeaderExchangedDocument>
+  <rsm:SpecifiedSupplyChainTradeTransaction>
+    <ram:ApplicableSupplyChainTradeAgreement>
+      <ram:SellerTradeParty>
+        <ram:Name>IT Light</ram:Name>
+        <ram:PostalTradeAddress>
+          <ram:PostcodeCode>66032</ram:PostcodeCode>
+          <ram:LineOne>street A</ram:LineOne>
+          <ram:LineTwo>Tower</ram:LineTwo>
+          <ram:CityName>New York</ram:CityName>
+          <ram:CountryID>US</ram:CountryID>
+        </ram:PostalTradeAddress>
+        <ram:SpecifiedTaxRegistration>
+          <ram:ID schemeID="VA">19</ram:ID>
+        </ram:SpecifiedTaxRegistration>
+      </ram:SellerTradeParty>
+      <ram:BuyerTradeParty>
+        <ram:ID>comercial_partner_id_reference</ram:ID>
+        <ram:Name>Big Company</ram:Name>
+        <ram:PostalTradeAddress>
+          <ram:PostcodeCode>66032</ram:PostcodeCode>
+          <ram:LineOne>street A</ram:LineOne>
+          <ram:LineTwo>Tower</ram:LineTwo>
+          <ram:CityName>New York</ram:CityName>
+          <ram:CountryID>US</ram:CountryID>
+        </ram:PostalTradeAddress>
+        <ram:SpecifiedTaxRegistration>
+          <ram:ID schemeID="VA">28</ram:ID>
+        </ram:SpecifiedTaxRegistration>
+      </ram:BuyerTradeParty>
+    </ram:ApplicableSupplyChainTradeAgreement>
+    <ram:ApplicableSupplyChainTradeDelivery/>
+    <ram:ApplicableSupplyChainTradeSettlement>
+      <ram:PaymentReference>123456</ram:PaymentReference>
+      <ram:InvoiceCurrencyCode>eur</ram:InvoiceCurrencyCode>
+      <ram:SpecifiedTradeSettlementPaymentMeans>
+        <ram:TypeCode>CBFBUY</ram:TypeCode>
+        <ram:Information>infomation about payment mode</ram:Information>
+      </ram:SpecifiedTradeSettlementPaymentMeans>
+      <ram:ApplicableTradeTax>
+        <ram:CalculatedAmount currencyID="eur">1</ram:CalculatedAmount>
+        <ram:TypeCode></ram:TypeCode>
+        <ram:BasisAmount currencyID="eur">1</ram:BasisAmount>
+        <ram:CategoryCode></ram:CategoryCode>
+      </ram:ApplicableTradeTax>
+      <ram:ApplicableTradeTax>
+        <ram:CalculatedAmount currencyID="eur">1</ram:CalculatedAmount>
+        <ram:TypeCode></ram:TypeCode>
+        <ram:BasisAmount currencyID="eur">1</ram:BasisAmount>
+        <ram:CategoryCode></ram:CategoryCode>
+      </ram:ApplicableTradeTax>
+      <ram:SpecifiedTradePaymentTerms>
+        <ram:Description>paypal</ram:Description>
+        <ram:DueDateDateTime>
+          <udt:DateTimeString format="102">2017213</udt:DateTimeString>
+        </ram:DueDateDateTime>
+      </ram:SpecifiedTradePaymentTerms>
+      <ram:SpecifiedTradeSettlementMonetarySummation>
+        <ram:LineTotalAmount currencyID="eur">235.000</ram:LineTotalAmount>
+        <ram:ChargeTotalAmount currencyID="eur">0.00</ram:ChargeTotalAmount>
+        <ram:AllowanceTotalAmount currencyID="eur">0.00</ram:AllowanceTotalAmount>
+        <ram:TaxBasisTotalAmount currencyID="eur">2.000</ram:TaxBasisTotalAmount>
+        <ram:TaxTotalAmount currencyID="eur">120.000</ram:TaxTotalAmount>
+        <ram:GrandTotalAmount currencyID="eur">375.000</ram:GrandTotalAmount>
+        <ram:TotalPrepaidAmount currencyID="eur">319.000</ram:TotalPrepaidAmount>
+        <ram:DuePayableAmount currencyID="eur">56.000</ram:DuePayableAmount>
+      </ram:SpecifiedTradeSettlementMonetarySummation>
+    </ram:ApplicableSupplyChainTradeSettlement>
+    <ram:IncludedSupplyChainTradeLineItem>
+      <ram:AssociatedDocumentLineDocument>
+        <ram:LineID>1</ram:LineID>
+      </ram:AssociatedDocumentLineDocument>
+      <ram:SpecifiedSupplyChainTradeAgreement>
+        <ram:GrossPriceProductTradePrice>
+          <ram:ChargeAmount currencyID="eur">160.0</ram:ChargeAmount>
+        </ram:GrossPriceProductTradePrice>
+        <ram:NetPriceProductTradePrice>
+          <ram:ChargeAmount currencyID="eur">1.5</ram:ChargeAmount>
+        </ram:NetPriceProductTradePrice>
+      </ram:SpecifiedSupplyChainTradeAgreement>
+      <ram:SpecifiedSupplyChainTradeDelivery>
+        <ram:BilledQuantity unitCode="111">2</ram:BilledQuantity>
+      </ram:SpecifiedSupplyChainTradeDelivery>
+      <ram:SpecifiedSupplyChainTradeSettlement>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>unece_category_11</ram:TypeCode>
+          <ram:CategoryCode>11</ram:CategoryCode>
+        </ram:ApplicableTradeTax>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>12</ram:TypeCode>
+          <ram:CategoryCode>unece_category_12</ram:CategoryCode>
+        </ram:ApplicableTradeTax>
+        <ram:SpecifiedTradeSettlementMonetarySummation>
+          <ram:LineTotalAmount currencyID="eur">3</ram:LineTotalAmount>
+        </ram:SpecifiedTradeSettlementMonetarySummation>
+      </ram:SpecifiedSupplyChainTradeSettlement>
+      <ram:SpecifiedTradeProduct>
+        <ram:Name>Item A</ram:Name>
+      </ram:SpecifiedTradeProduct>
+    </ram:IncludedSupplyChainTradeLineItem>
+    <ram:IncludedSupplyChainTradeLineItem>
+      <ram:AssociatedDocumentLineDocument>
+        <ram:LineID>2</ram:LineID>
+      </ram:AssociatedDocumentLineDocument>
+      <ram:SpecifiedSupplyChainTradeAgreement>
+        <ram:GrossPriceProductTradePrice>
+          <ram:ChargeAmount currencyID="eur">160.0</ram:ChargeAmount>
+        </ram:GrossPriceProductTradePrice>
+        <ram:NetPriceProductTradePrice>
+          <ram:ChargeAmount currencyID="eur">1.5</ram:ChargeAmount>
+        </ram:NetPriceProductTradePrice>
+      </ram:SpecifiedSupplyChainTradeAgreement>
+      <ram:SpecifiedSupplyChainTradeDelivery>
+        <ram:BilledQuantity unitCode="222">2</ram:BilledQuantity>
+      </ram:SpecifiedSupplyChainTradeDelivery>
+      <ram:SpecifiedSupplyChainTradeSettlement>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>21</ram:TypeCode>
+          <ram:CategoryCode>unece_category_21</ram:CategoryCode>
+        </ram:ApplicableTradeTax>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>22</ram:TypeCode>
+          <ram:CategoryCode>unece_category_222</ram:CategoryCode>
+        </ram:ApplicableTradeTax>
+        <ram:SpecifiedTradeSettlementMonetarySummation>
+          <ram:LineTotalAmount currencyID="eur">3</ram:LineTotalAmount>
+        </ram:SpecifiedTradeSettlementMonetarySummation>
+      </ram:SpecifiedSupplyChainTradeSettlement>
+      <ram:SpecifiedTradeProduct>
+        <ram:Name>Item A</ram:Name>
+      </ram:SpecifiedTradeProduct>
+    </ram:IncludedSupplyChainTradeLineItem>
+  </rsm:SpecifiedSupplyChainTradeTransaction>
+</rsm:CrossIndustryDocument>

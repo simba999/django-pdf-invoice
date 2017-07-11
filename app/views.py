@@ -1211,6 +1211,9 @@ def generate_zugferd_xml(request):
         'ZUGFeRD XML file generated for invoice ID')
     logger.debug(xml_string)
     print xml_string
+    with open('output.xml', 'w') as fp:
+        fp.write(xml_string)
+        fp.close()
     return HttpResponse("ok")
 
 def pdf_is_zugfered(request, filename):
