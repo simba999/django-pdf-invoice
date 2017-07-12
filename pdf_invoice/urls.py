@@ -15,10 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from app.views import generate_zugferd_xml, regular_pdf_invoice_to_facturx_invoice
+from app.views import show_xml, regular_pdf_invoice_to_facturx_invoice
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'generate_zugferd_xml', generate_zugferd_xml, name="generate_zugferd_xml"),
+    url(r'show_xml', show_xml, name="show_xml"),
     url(r'regular_pdf_invoice_to_facturx_invoice', regular_pdf_invoice_to_facturx_invoice, name="regular_pdf_invoice_to_facturx_invoice")
 ]

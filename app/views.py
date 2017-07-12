@@ -436,11 +436,35 @@ DECIMAL_PLACES = {
 
 env = {
     'user': {
-        'company_id': '213'
+        'company_id': {
+            'name': 'IT Corridor',
+            'id': 123
+        }
     },
     'base_values': (160, 120, 60),
     'round': True
 }
+
+# mapping for namespaces for xml
+# inspired from https://github.com/OCA/edi/blob/10.0/account_invoice_factur-x/models/account_invoice.py
+nsmap = {
+    'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+    'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
+    'ram': 'urn:un:unece:uncefact:data:standard:'
+            'ReusableAggregateBusinessInformationEntity:12',
+    'udt': 'urn:un:unece:uncefact:data:'
+            'standard:UnqualifiedDataType:15',
+    }
+
+# values for namespaces for xml
+# inspired from https://github.com/OCA/edi/blob/10.0/account_invoice_factur-x/models/account_invoice.py
+ns = {
+    'rsm': '{urn:ferd:CrossIndustryDocument:invoice:1p0}',
+    'ram': '{urn:un:unece:uncefact:data:standard:'
+            'ReusableAggregateBusinessInformationEntity:12}',
+    'udt': '{urn:un:unece:uncefact:data:standard:'
+            'UnqualifiedDataType:15}',
+    }
 
 # root of xml document
 root = None
@@ -556,7 +580,6 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
             }]
         } 
     """
-    # pdb.set_trace()
     if len(self_array) == 0:
         company_id = env.user.company_id
     else:
@@ -1141,7 +1164,7 @@ def _add_invoice_line_block(trade_transaction, iline, line_number, sign, ns):
         product_desc.text = iline['product_id']['default_code']
 
 # Create your views here.
-def generate_zugferd_xml(request):
+def generate_zugferd_xml():
     """
         Generate zugferd_xml file
     """
@@ -1170,11 +1193,11 @@ def generate_zugferd_xml(request):
     # if type is invoice, then 1 or -1
     sign = 1
     
-    # 2.pdf is sample Zugrefd pdf file  
-    pdf_file = open('2.pdf', 'rb')
-    read_pdf = PdfFileReader(pdf_file)
-    # get the toal number of pages
-    number_of_pages = read_pdf.getNumPages()
+    # # 2.pdf is sample Zugrefd pdf file  
+    # pdf_file = open('2.pdf', 'rb')
+    # read_pdf = PdfFileReader(pdf_file)
+    # # get the toal number of pages
+    # number_of_pages = read_pdf.getNumPages()
     
     root = etree.Element(ns['rsm'] + 'CrossIndustryDocument', nsmap=nsmap)
     
@@ -1213,7 +1236,34 @@ def generate_zugferd_xml(request):
     with open('output.xml', 'w') as fp:
         fp.write(xml_string)
         fp.close()
-    return HttpResponse("ok")
+    return xml_string
+
+def _get_pdf_timestamp():
+    now_dt = datetime.now()
+    # example date format: "D:20141006161354+02'00'"
+    # TODO : add support for timezone ?
+    pdf_date = now_dt.strftime("D:%Y%m%d%H%M%S+00'00'")
+    return pdf_date
+
+def _get_metadata_timestamp():
+    now_dt = datetime.now()
+    # example format : 2014-07-25T14:01:22+02:00
+    meta_date = now_dt.strftime('%Y-%m-%dT%H:%M:%S+00:00')
+    return meta_date
+
+def _prepare_pdf_info():
+    pdf_date = _get_pdf_timestamp()
+    info_dict = {
+        '/Author': env['user']['company_id']['name'],
+        '/CreationDate': pdf_date,
+        '/Creator':
+        u'Odoo module account_invoice_factur-x by Alexis de Lattre',
+        '/Keywords': u'ZUGFeRD, Invoice',
+        '/ModDate': pdf_date,
+        '/Subject': u'Invoice %s' % INVOICE['number'] or INVOICE['state'],
+        '/Title': u'Invoice %s' % INVOICE['number'] or INVOICE['state'],
+        }
+    return info_dict
 
 def pdf_is_zugferd(pdf_content):
     """
@@ -1259,66 +1309,148 @@ def pdf_is_zugferd(pdf_content):
 
     return is_zugferd
 
-def zugferd_update_metadata_add_attachment(
-            self, pdf_filestream, fname, fdata):
-        '''This method is inspired from the code of the addAttachment()
-        method of the PyPDF2 lib'''
-        # The entry for the file
-        moddate = DictionaryObject()
-        moddate.update({
-            NameObject('/ModDate'): createStringObject(
-                self._get_pdf_timestamp())})
-        file_entry = DecodedStreamObject()
-        file_entry.setData(fdata)
-        file_entry.update({
-            NameObject("/Type"): NameObject("/EmbeddedFile"),
-            NameObject("/Params"): moddate,
-            # 2F is '/' in hexadecimal
-            NameObject("/Subtype"): NameObject("/text#2Fxml"),
-            })
-        file_entry_obj = pdf_filestream._addObject(file_entry)
-        # The Filespec entry
-        efEntry = DictionaryObject()
-        efEntry.update({
-            NameObject("/F"): file_entry_obj,
-            NameObject('/UF'): file_entry_obj,
-            })
+def _prepare_pdf_metadata():
+    nsmap_rdf = {'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'}
+    nsmap_dc = {'dc': 'http://purl.org/dc/elements/1.1/'}
+    nsmap_pdf = {'pdf': 'http://ns.adobe.com/pdf/1.3/'}
+    nsmap_xmp = {'xmp': 'http://ns.adobe.com/xap/1.0/'}
+    nsmap_pdfaid = {'pdfaid': 'http://www.aiim.org/pdfa/ns/id/'}
+    nsmap_zf = {'zf': 'urn:ferd:pdfa:CrossIndustryDocument:invoice:1p0#'}
+    ns_dc = '{%s}' % nsmap_dc['dc']
+    ns_rdf = '{%s}' % nsmap_rdf['rdf']
+    ns_pdf = '{%s}' % nsmap_pdf['pdf']
+    ns_xmp = '{%s}' % nsmap_xmp['xmp']
+    ns_pdfaid = '{%s}' % nsmap_pdfaid['pdfaid']
+    ns_zf = '{%s}' % nsmap_zf['zf']
+    ns_xml = '{http://www.w3.org/XML/1998/namespace}'
 
-        fname_obj = createStringObject(fname)
-        filespec = DictionaryObject()
-        filespec.update({
-            NameObject("/AFRelationship"): NameObject("/Alternative"),
-            NameObject("/Desc"): createStringObject("ZUGFeRD Invoice"),
-            NameObject("/Type"): NameObject("/Filespec"),
-            NameObject("/F"): fname_obj,
-            NameObject("/EF"): efEntry,
-            NameObject("/UF"): fname_obj,
-            })
-        embeddedFilesNamesDictionary = DictionaryObject()
-        embeddedFilesNamesDictionary.update({
-            NameObject("/Names"): ArrayObject(
-                [fname_obj, pdf_filestream._addObject(filespec)])
-            })
-        # Then create the entry for the root, as it needs a
-        # reference to the Filespec
-        embeddedFilesDictionary = DictionaryObject()
-        embeddedFilesDictionary.update({
-            NameObject("/EmbeddedFiles"): embeddedFilesNamesDictionary
-            })
-        # Update the root
-        metadata_xml_str = self._prepare_pdf_metadata()
-        metadata_file_entry = DecodedStreamObject()
-        metadata_file_entry.setData(metadata_xml_str)
-        metadata_value = pdf_filestream._addObject(metadata_file_entry)
-        af_value = pdf_filestream._addObject(
-            ArrayObject([pdf_filestream._addObject(filespec)]))
-        pdf_filestream._root_object.update({
-            NameObject("/AF"): af_value,
-            NameObject("/Metadata"): metadata_value,
-            NameObject("/Names"): embeddedFilesDictionary,
-            })
-        info_dict = self._prepare_pdf_info()
-        pdf_filestream.addMetadata(info_dict)
+    root = etree.Element(ns_rdf + 'RDF', nsmap=nsmap_rdf)
+    desc_pdfaid = etree.SubElement(
+        root, ns_rdf + 'Description', nsmap=nsmap_pdfaid)
+    desc_pdfaid.set(ns_rdf + 'about', '')
+    etree.SubElement(
+        desc_pdfaid, ns_pdfaid + 'part').text = '3'
+    etree.SubElement(
+        desc_pdfaid, ns_pdfaid + 'conformance').text = 'B'
+    desc_dc = etree.SubElement(
+        root, ns_rdf + 'Description', nsmap=nsmap_dc)
+    desc_dc.set(ns_rdf + 'about', '')
+    dc_title = etree.SubElement(desc_dc, ns_dc + 'title')
+    dc_title_alt = etree.SubElement(dc_title, ns_rdf + 'Alt')
+    dc_title_alt_li = etree.SubElement(
+        dc_title_alt, ns_rdf + 'li')
+    dc_title_alt_li.text = 'ZUGFeRD Invoice'
+    dc_title_alt_li.set(ns_xml + 'lang', 'x-default')
+    dc_creator = etree.SubElement(desc_dc, ns_dc + 'creator')
+    dc_creator_seq = etree.SubElement(dc_creator, ns_rdf + 'Seq')
+    etree.SubElement(
+        dc_creator_seq, ns_rdf + 'li').text = INVOICE['company_id']['name']
+    dc_desc = etree.SubElement(desc_dc, ns_dc + 'description')
+    dc_desc_alt = etree.SubElement(dc_desc, ns_rdf + 'Alt')
+    dc_desc_alt_li = etree.SubElement(
+        dc_desc_alt, ns_rdf + 'li')
+    dc_desc_alt_li.text = 'Invoice %s' % INVOICE['number'] or INVOICE['status']
+    dc_desc_alt_li.set(ns_xml + 'lang', 'x-default')
+    desc_adobe = etree.SubElement(
+        root, ns_rdf + 'Description', nsmap=nsmap_pdf)
+    desc_adobe.set(ns_rdf + 'about', '')
+    producer = etree.SubElement(
+        desc_adobe, ns_pdf + 'Producer')
+    producer.text = 'PyPDF2'
+    desc_xmp = etree.SubElement(
+        root, ns_rdf + 'Description', nsmap=nsmap_xmp)
+    desc_xmp.set(ns_rdf + 'about', '')
+    creator = etree.SubElement(
+        desc_xmp, ns_xmp + 'CreatorTool')
+    creator.text =\
+        'Odoo module account_invoice_factur-x by Alexis de Lattre'
+    timestamp = _get_metadata_timestamp()
+    etree.SubElement(desc_xmp, ns_xmp + 'CreateDate').text = timestamp
+    etree.SubElement(desc_xmp, ns_xmp + 'ModifyDate').text = timestamp
+
+    with open('data/ZUGFeRD_extension_schema.xmp', 'rb') as fp:
+        temp_content = fp.read()
+    pdb.set_trace()
+    zugferd_ext_schema_root = etree.parse(StringIO(temp_content))
+    # The ZUGFeRD extension schema must be embedded into each PDF document
+    zugferd_ext_schema_desc_xpath = zugferd_ext_schema_root.xpath(
+        '//rdf:Description', namespaces=nsmap_rdf)
+    root.append(zugferd_ext_schema_desc_xpath[1])
+    # Now is the ZUGFeRD description tag
+    zugferd_desc = etree.SubElement(
+        root, ns_rdf + 'Description', nsmap=nsmap_zf)
+    zugferd_desc.set(ns_rdf + 'about', '')
+    zugferd_desc.set(ns_zf + 'ConformanceLevel', ZUGFERD_LEVEL.upper())
+    zugferd_desc.set(ns_zf + 'DocumentFileName', ZUGFERD_FILENAME)
+    zugferd_desc.set(ns_zf + 'DocumentType', 'INVOICE')
+    zugferd_desc.set(ns_zf + 'Version', '1.0')
+
+    xml_str = etree.tostring(
+        root, pretty_print=True, encoding="UTF-8", xml_declaration=False)
+    logger.debug('metadata XML:')
+    logger.debug(xml_str)
+    return xml_str
+
+def zugferd_update_metadata_add_attachment(
+        pdf_filestream, fname, fdata):
+    '''This method is inspired from the code of the addAttachment()
+    method of the PyPDF2 lib'''
+    # The entry for the file
+    moddate = DictionaryObject()
+    moddate.update({
+        NameObject('/ModDate'): createStringObject(
+            _get_pdf_timestamp())})
+    file_entry = DecodedStreamObject()
+    file_entry.setData(fdata)
+    file_entry.update({
+        NameObject("/Type"): NameObject("/EmbeddedFile"),
+        NameObject("/Params"): moddate,
+        # 2F is '/' in hexadecimal
+        NameObject("/Subtype"): NameObject("/text#2Fxml"),
+        })
+    file_entry_obj = pdf_filestream._addObject(file_entry)
+    # The Filespec entry
+    efEntry = DictionaryObject()
+    efEntry.update({
+        NameObject("/F"): file_entry_obj,
+        NameObject('/UF'): file_entry_obj,
+        })
+
+    fname_obj = createStringObject(fname)
+    filespec = DictionaryObject()
+    filespec.update({
+        NameObject("/AFRelationship"): NameObject("/Alternative"),
+        NameObject("/Desc"): createStringObject("ZUGFeRD Invoice"),
+        NameObject("/Type"): NameObject("/Filespec"),
+        NameObject("/F"): fname_obj,
+        NameObject("/EF"): efEntry,
+        NameObject("/UF"): fname_obj,
+        })
+    embeddedFilesNamesDictionary = DictionaryObject()
+    embeddedFilesNamesDictionary.update({
+        NameObject("/Names"): ArrayObject(
+            [fname_obj, pdf_filestream._addObject(filespec)])
+        })
+    # Then create the entry for the root, as it needs a
+    # reference to the Filespec
+    embeddedFilesDictionary = DictionaryObject()
+    embeddedFilesDictionary.update({
+        NameObject("/EmbeddedFiles"): embeddedFilesNamesDictionary
+        })
+    # Update the root
+    metadata_xml_str = _prepare_pdf_metadata()
+    metadata_file_entry = DecodedStreamObject()
+    metadata_file_entry.setData(metadata_xml_str)
+    metadata_value = pdf_filestream._addObject(metadata_file_entry)
+    af_value = pdf_filestream._addObject(
+        ArrayObject([pdf_filestream._addObject(filespec)]))
+    pdf_filestream._root_object.update({
+        NameObject("/AF"): af_value,
+        NameObject("/Metadata"): metadata_value,
+        NameObject("/Names"): embeddedFilesDictionary,
+        })
+    info_dict = _prepare_pdf_info()
+    pdf_filestream.addMetadata(info_dict)
 
 def regular_pdf_invoice_to_facturx_invoice(
         request, pdf_content=None, pdf_file=None):
@@ -1334,14 +1466,11 @@ def regular_pdf_invoice_to_facturx_invoice(
         (used for py3o invoices, cf module account_invoice_factur-x_py3o)
     """
     # assert pdf_content or pdf_file, 'Missing pdf_file or pdf_content'
-    pdf_file = 'sample.pdf'
+    pdf_file = '22.pdf'
     with open(pdf_file, 'rb') as fp:
         pdf_content = fp.read()
-    pdb.set_trace()
     if not pdf_is_zugferd(pdf_content):
         if INVOICE['type'] in ('out_invoice', 'out_refund'):
-            print "type: "
-            pdb.set_trace()
             zugferd_xml_str = generate_zugferd_xml()
             # Generate a new PDF with XML file as attachment
             if pdf_file:
@@ -1368,3 +1497,7 @@ def regular_pdf_invoice_to_facturx_invoice(
     with open('pdf_sample.pdf', 'wb') as fp:
         fp.write(pdf_content)
     return HttpResponse(pdf_content)
+
+def show_xml(request):
+    xml_string  = generate_zugferd_xml()
+    return HttpResponse(xml_string)

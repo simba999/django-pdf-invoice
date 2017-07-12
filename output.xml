@@ -10,7 +10,7 @@
     <ram:Name>Invoice</ram:Name>
     <ram:TypeCode>380</ram:TypeCode>
     <ram:IssueDateTime>
-      <udt:DateTimeString format="102">20170708</udt:DateTimeString>
+      <udt:DateTimeString format="102">20170712</udt:DateTimeString>
     </ram:IssueDateTime>
     <ram:IncludedNote>
       <ram:Content>I like Illya because he is perfect guy</ram:Content>
