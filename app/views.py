@@ -29,7 +29,7 @@ INVOICE = {
     'state': 'open',
     'number': '123456',
     'comment': 'I like Illya because he is perfect guy',
-    'type': 'our_invoice',
+    'type': 'out_invoice',
     'company_id': {
         'name': 'IT Light',
         'vat': '19',
@@ -1145,7 +1145,6 @@ def generate_zugferd_xml(request):
     """
         Generate zugferd_xml file
     """
-
     # mapping for namespaces for xml
     # inspired from https://github.com/OCA/edi/blob/10.0/account_invoice_factur-x/models/account_invoice.py
     nsmap = {
@@ -1216,15 +1215,30 @@ def generate_zugferd_xml(request):
         fp.close()
     return HttpResponse("ok")
 
-def pdf_is_zugferd(filename):
+def pdf_is_zugferd(pdf_content):
     """
         check if the pdf file is ZUGFeRE format
     """
-    with open(filename, 'rb') as fp:
-        pdf_content = fp.read()
+    # mapping for namespaces for xml
+    # inspired from https://github.com/OCA/edi/blob/10.0/account_invoice_factur-x/models/account_invoice.py
+    nsmap = {
+        'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
+        'ram': 'urn:un:unece:uncefact:data:standard:'
+                'ReusableAggregateBusinessInformationEntity:12',
+        'udt': 'urn:un:unece:uncefact:data:'
+                'standard:UnqualifiedDataType:15',
+        }
 
-    read_pdf = PdfFileReader(pdf_file)
-    number_of_pages = read_pdf.getNumPages()
+    # values for namespaces for xml
+    # inspired from https://github.com/OCA/edi/blob/10.0/account_invoice_factur-x/models/account_invoice.py
+    ns = {
+        'rsm': '{urn:ferd:CrossIndustryDocument:invoice:1p0}',
+        'ram': '{urn:un:unece:uncefact:data:standard:'
+                'ReusableAggregateBusinessInformationEntity:12}',
+        'udt': '{urn:un:unece:uncefact:data:standard:'
+                'UnqualifiedDataType:15}',
+        }
     
     is_zugferd = False
     try:
@@ -1320,8 +1334,14 @@ def regular_pdf_invoice_to_facturx_invoice(
         (used for py3o invoices, cf module account_invoice_factur-x_py3o)
     """
     # assert pdf_content or pdf_file, 'Missing pdf_file or pdf_content'
+    pdf_file = 'sample.pdf'
+    with open(pdf_file, 'rb') as fp:
+        pdf_content = fp.read()
+    pdb.set_trace()
     if not pdf_is_zugferd(pdf_content):
-        if self.type in ('out_invoice', 'out_refund'):
+        if INVOICE['type'] in ('out_invoice', 'out_refund'):
+            print "type: "
+            pdb.set_trace()
             zugferd_xml_str = generate_zugferd_xml()
             # Generate a new PDF with XML file as attachment
             if pdf_file:
@@ -1331,7 +1351,7 @@ def regular_pdf_invoice_to_facturx_invoice(
             original_pdf = PdfFileReader(original_pdf_file)
             new_pdf_filestream = PdfFileWriter()
             new_pdf_filestream.appendPagesFromReader(original_pdf)
-            self.zugferd_update_metadata_add_attachment(
+            zugferd_update_metadata_add_attachment(
                 new_pdf_filestream, ZUGFERD_FILENAME, zugferd_xml_str)
             prefix = 'invoice-zugferd-'
             if pdf_file:
@@ -1345,4 +1365,6 @@ def regular_pdf_invoice_to_facturx_invoice(
                     pdf_content = f.read()
                     f.close()
             logger.info('%s file added to PDF invoice', ZUGFERD_FILENAME)
-    return pdf_content
+    with open('pdf_sample.pdf', 'wb') as fp:
+        fp.write(pdf_content)
+    return HttpResponse(pdf_content)
