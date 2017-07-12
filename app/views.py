@@ -1216,7 +1216,7 @@ def generate_zugferd_xml(request):
         fp.close()
     return HttpResponse("ok")
 
-def pdf_is_zugfered(request, filename):
+def pdf_is_zugferd(filename):
     """
         check if the pdf file is ZUGFeRE format
     """
@@ -1244,3 +1244,105 @@ def pdf_is_zugfered(request, filename):
         pass
 
     return is_zugferd
+
+def zugferd_update_metadata_add_attachment(
+            self, pdf_filestream, fname, fdata):
+        '''This method is inspired from the code of the addAttachment()
+        method of the PyPDF2 lib'''
+        # The entry for the file
+        moddate = DictionaryObject()
+        moddate.update({
+            NameObject('/ModDate'): createStringObject(
+                self._get_pdf_timestamp())})
+        file_entry = DecodedStreamObject()
+        file_entry.setData(fdata)
+        file_entry.update({
+            NameObject("/Type"): NameObject("/EmbeddedFile"),
+            NameObject("/Params"): moddate,
+            # 2F is '/' in hexadecimal
+            NameObject("/Subtype"): NameObject("/text#2Fxml"),
+            })
+        file_entry_obj = pdf_filestream._addObject(file_entry)
+        # The Filespec entry
+        efEntry = DictionaryObject()
+        efEntry.update({
+            NameObject("/F"): file_entry_obj,
+            NameObject('/UF'): file_entry_obj,
+            })
+
+        fname_obj = createStringObject(fname)
+        filespec = DictionaryObject()
+        filespec.update({
+            NameObject("/AFRelationship"): NameObject("/Alternative"),
+            NameObject("/Desc"): createStringObject("ZUGFeRD Invoice"),
+            NameObject("/Type"): NameObject("/Filespec"),
+            NameObject("/F"): fname_obj,
+            NameObject("/EF"): efEntry,
+            NameObject("/UF"): fname_obj,
+            })
+        embeddedFilesNamesDictionary = DictionaryObject()
+        embeddedFilesNamesDictionary.update({
+            NameObject("/Names"): ArrayObject(
+                [fname_obj, pdf_filestream._addObject(filespec)])
+            })
+        # Then create the entry for the root, as it needs a
+        # reference to the Filespec
+        embeddedFilesDictionary = DictionaryObject()
+        embeddedFilesDictionary.update({
+            NameObject("/EmbeddedFiles"): embeddedFilesNamesDictionary
+            })
+        # Update the root
+        metadata_xml_str = self._prepare_pdf_metadata()
+        metadata_file_entry = DecodedStreamObject()
+        metadata_file_entry.setData(metadata_xml_str)
+        metadata_value = pdf_filestream._addObject(metadata_file_entry)
+        af_value = pdf_filestream._addObject(
+            ArrayObject([pdf_filestream._addObject(filespec)]))
+        pdf_filestream._root_object.update({
+            NameObject("/AF"): af_value,
+            NameObject("/Metadata"): metadata_value,
+            NameObject("/Names"): embeddedFilesDictionary,
+            })
+        info_dict = self._prepare_pdf_info()
+        pdf_filestream.addMetadata(info_dict)
+
+def regular_pdf_invoice_to_facturx_invoice(
+        request, pdf_content=None, pdf_file=None):
+    """
+        This method is independent from the reporting engine.
+        2 possible uses:
+        a) use the pdf_content argument, which has the binary of the PDF
+        -> it will return the new PDF binary with the embedded XML
+        (used for qweb-pdf invoices in this module, cf report.py)
+        b) OR use the pdf_file argument, which has the path to the
+        original PDF file
+        -> it will re-write this file with the new PDF
+        (used for py3o invoices, cf module account_invoice_factur-x_py3o)
+    """
+    # assert pdf_content or pdf_file, 'Missing pdf_file or pdf_content'
+    if not pdf_is_zugferd(pdf_content):
+        if self.type in ('out_invoice', 'out_refund'):
+            zugferd_xml_str = generate_zugferd_xml()
+            # Generate a new PDF with XML file as attachment
+            if pdf_file:
+                original_pdf_file = pdf_file
+            elif pdf_content:
+                original_pdf_file = StringIO(pdf_content)
+            original_pdf = PdfFileReader(original_pdf_file)
+            new_pdf_filestream = PdfFileWriter()
+            new_pdf_filestream.appendPagesFromReader(original_pdf)
+            self.zugferd_update_metadata_add_attachment(
+                new_pdf_filestream, ZUGFERD_FILENAME, zugferd_xml_str)
+            prefix = 'invoice-zugferd-'
+            if pdf_file:
+                f = open(pdf_file, 'w')
+                new_pdf_filestream.write(f)
+                f.close()
+            elif pdf_content:
+                with NamedTemporaryFile(prefix=prefix, suffix='.pdf') as f:
+                    new_pdf_filestream.write(f)
+                    f.seek(0)
+                    pdf_content = f.read()
+                    f.close()
+            logger.info('%s file added to PDF invoice', ZUGFERD_FILENAME)
+    return pdf_content
