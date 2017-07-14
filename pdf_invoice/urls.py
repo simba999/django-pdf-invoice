@@ -16,11 +16,11 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from app.views import show_xml, regular_pdf_invoice_to_facturx_invoice
-from invoice.views import pdf_view
+from invoice.views import print_pdf
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'show_xml', show_xml, name="show_xml"),
     url(r'regular_pdf_invoice_to_facturx_invoice', regular_pdf_invoice_to_facturx_invoice, name="regular_pdf_invoice_to_facturx_invoice"),
-    url(r'pdf_response/(?P<pk>[0-9]+)', pdf_view, name="pdf_view")
+    url(r'print_pdf', print_pdf, name="print_pdf")
 ]

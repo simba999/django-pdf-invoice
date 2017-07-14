@@ -1466,7 +1466,7 @@ def regular_pdf_invoice_to_facturx_invoice(
         (used for py3o invoices, cf module account_invoice_factur-x_py3o)
     """
     # assert pdf_content or pdf_file, 'Missing pdf_file or pdf_content'
-    pdf_file = '22.pdf'
+    pdf_file = 'IT_invoice.pdf'
     with open(pdf_file, 'rb') as fp:
         pdf_content = fp.read()
     if not pdf_is_zugferd(pdf_content):
