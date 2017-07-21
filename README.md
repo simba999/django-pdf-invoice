@@ -26,16 +26,11 @@ http://www.pdflib.com/pdflib-cookbook/pdfa/zugferd-add-xml-to-pdfa/
 3.PyPDF2 documentation
 
 ############### ISSUES #####################
-I have used PyPDF2 for creating pdf invoice, but it is not perfect.
-It may be helpful to use PDFlib
-
-
-############### Soluion ####################
-1. created pdf file is not validated for PDF/A-3.
+Created pdf file is not validated for PDF/A-3.
 you can check PDF validation here: https://www.pdf-online.com/osa/validate.aspx
-
+############### Soluion ####################
 Solution:
 1. check validate issues
-2. PDFlib can handle all of the issues
+2. PDFlib can handle all of the issues. I have used PyPDF2.
 
 I think if we solve teh PDF validation issue, then Zugferd involice validation can be done.
