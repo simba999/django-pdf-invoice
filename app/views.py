@@ -1466,9 +1466,12 @@ def regular_pdf_invoice_to_facturx_invoice(
         (used for py3o invoices, cf module account_invoice_factur-x_py3o)
     """
     # assert pdf_content or pdf_file, 'Missing pdf_file or pdf_content'
-    pdf_file = 'IT_invoice.pdf'
-    with open(pdf_file, 'rb') as fp:
-        pdf_content = fp.read()
+    
+    pdf_file1 = 'resource.pdf'
+    if not pdf_content:
+        with open(pdf_file1, 'rb') as fp:
+            pdf_content = fp.read()
+    pdb.set_trace()
     if not pdf_is_zugferd(pdf_content):
         if INVOICE['type'] in ('out_invoice', 'out_refund'):
             zugferd_xml_str = generate_zugferd_xml()
@@ -1497,6 +1500,47 @@ def regular_pdf_invoice_to_facturx_invoice(
     with open('pdf_sample.pdf', 'wb') as fp:
         fp.write(pdf_content)
     return HttpResponse(pdf_content)
+
+def create_pdf(request, file_name):
+    """
+        Create PDF/A type
+    """
+    pdfFileObj = open(file_name, 'rb')
+    # pdfFileObj2 = open('output.pdf', 'wb')
+    pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
+    
+    # pdfReader2 = PyPDF2.PdfFileReader(pdfFileObj2)
+    pdfWriter = PyPDF2.PdfFileWriter()
+
+    # handle pdf file
+    pageObj = pdfReader.getPage(0)
+    pdfWriter.addPage(pageObj)
+    pdfWriter.addMetadata(_prepare_pdf_info())
+
+    pdfOutputFile = open('pp.pdf', 'wb')
+    pdfWriter.write(pdfOutputFile)
+
+    # # display 
+    pageObj = pdfReader.getPage(0)
+    print "******* total count:  ", pdfReader.numPages
+    print "******* Text:   ", pageObj.extractText()
+
+    pdfOutputFile.close()
+    pdfFileObj.close()
+    # pdfFileObj2.close()
+    
+    # output
+    return HttpResponse(pageObj)
+
+def show_pdf(request, file_name):
+    pdfFileObj = open(file_name, 'rb')
+    pdfReader = PdfFileReader(pdfFileObj)
+
+    pageObj = pdfReader.getDocumentInfo()
+    print pageObj
+    print "*************************** XMP DATA *********************************"
+    print pdfReader.getXmpMetadata()
+    return HttpResponse(pageObj)
 
 def show_xml(request):
     xml_string  = generate_zugferd_xml()
