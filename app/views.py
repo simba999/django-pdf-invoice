@@ -10,7 +10,15 @@ import PyPDF2
 import logging
 import time
 import math
-import pdb
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.platypus import Table
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+
+try:
+    from django.utils import importlib
+except ImportError:
+    import importlib
 
 logger = logging.getLogger(__name__)
 
@@ -629,9 +637,7 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
         if tax['amount_type'] == 'group':
             tax['children_tax_ids'][0]['base_values'] = (total_excluded, total_included, base)
             children = tax['children_tax_ids']
-            print "children ret **************"
             ret = _compute_all(children, price_unit, currency, quantity, product, partner)
-            print "****** RET: ", ret
             total_excluded = ret['total_excluded']
             base = ret['base'] if tax['include_base_amount'] else base
             total_included = ret['total_included']
@@ -640,7 +646,6 @@ def _compute_all(self_array, price_unit, currency=None, quantity=1.0, product=No
             continue
 
         tax_amount = _compute_amount(tax, base, price_unit, quantity, product, partner)
-        print "*** tax_amount:  ", tax_amount
         if not round_tax:
             tax_amount = round(tax_amount, prec)
         else:
@@ -995,7 +1000,6 @@ def _check_xml_schema(xml_string, xsd_file):
         "
     """
     xsd_string = open(xsd_file, 'rb')
-    print xsd_string
     xsd_etree_obj = etree.parse(xsd_string)
     official_schema = etree.XMLSchema(xsd_etree_obj)
     
@@ -1212,13 +1216,6 @@ def generate_zugferd_xml():
     _add_trade_delivery_block(trade_transaction, ns)
     _add_trade_settlement_block(trade_transaction, sign, ns)
 
-    # # echo dummy data
-    # xml_string = etree.tostring(
-    #     root, pretty_print=True, encoding='UTF-8', xml_declaration=True)
-    # isXml = _check_xml_schema(
-    #     xml_string, 'data/ZUGFeRD1p0.xsd')
-    # print "&&&&& XML Flag :   ", isXml
-
     line_number = 0
     for iline in INVOCE_LINE_IDS:
         line_number += 1
@@ -1232,7 +1229,7 @@ def generate_zugferd_xml():
     logger.debug(
         'ZUGFeRD XML file generated for invoice ID')
     logger.debug(xml_string)
-    print xml_string
+
     with open('output.xml', 'w') as fp:
         fp.write(xml_string)
         fp.close()
@@ -1297,7 +1294,6 @@ def pdf_is_zugferd(pdf_content):
         pdf_root = pdf.trailer['/Root']
         logger.debug('pdf_root=%s', pdf_root)
         embeddedfiles = pdf_root['/Names']['/EmbeddedFiles']['/Names']
-        print "Embeded Files:  ", embeddedfiles
         root = etree.Element(ns['rsm'] + 'CrossIndustryDocument', nsmap=nsmap)
         for embeddedfile in embeddedfiles:
             if embeddedfile == ZUGFERD_FILENAME:
@@ -1370,7 +1366,7 @@ def _prepare_pdf_metadata():
 
     with open('data/ZUGFeRD_extension_schema.xmp', 'rb') as fp:
         temp_content = fp.read()
-    pdb.set_trace()
+    
     zugferd_ext_schema_root = etree.parse(StringIO(temp_content))
     # The ZUGFeRD extension schema must be embedded into each PDF document
     zugferd_ext_schema_desc_xpath = zugferd_ext_schema_root.xpath(
@@ -1471,7 +1467,7 @@ def regular_pdf_invoice_to_facturx_invoice(
     if not pdf_content:
         with open(pdf_file1, 'rb') as fp:
             pdf_content = fp.read()
-    pdb.set_trace()
+    
     if not pdf_is_zugferd(pdf_content):
         if INVOICE['type'] in ('out_invoice', 'out_refund'):
             zugferd_xml_str = generate_zugferd_xml()
@@ -1501,47 +1497,200 @@ def regular_pdf_invoice_to_facturx_invoice(
         fp.write(pdf_content)
     return HttpResponse(pdf_content)
 
-def create_pdf(request, file_name):
-    """
-        Create PDF/A type
-    """
-    pdfFileObj = open(file_name, 'rb')
-    # pdfFileObj2 = open('output.pdf', 'wb')
-    pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
-    
-    # pdfReader2 = PyPDF2.PdfFileReader(pdfFileObj2)
-    pdfWriter = PyPDF2.PdfFileWriter()
-
-    # handle pdf file
-    pageObj = pdfReader.getPage(0)
-    pdfWriter.addPage(pageObj)
-    pdfWriter.addMetadata(_prepare_pdf_info())
-
-    pdfOutputFile = open('pp.pdf', 'wb')
-    pdfWriter.write(pdfOutputFile)
-
-    # # display 
-    pageObj = pdfReader.getPage(0)
-    print "******* total count:  ", pdfReader.numPages
-    print "******* Text:   ", pageObj.extractText()
-
-    pdfOutputFile.close()
-    pdfFileObj.close()
-    # pdfFileObj2.close()
-    
-    # output
-    return HttpResponse(pageObj)
-
 def show_pdf(request, file_name):
     pdfFileObj = open(file_name, 'rb')
     pdfReader = PdfFileReader(pdfFileObj)
 
     pageObj = pdfReader.getDocumentInfo()
-    print pageObj
-    print "*************************** XMP DATA *********************************"
-    print pdfReader.getXmpMetadata()
     return HttpResponse(pageObj)
 
 def show_xml(request):
     xml_string  = generate_zugferd_xml()
     return HttpResponse(xml_string)
+
+### Generate visulization module
+class invoice:
+    class address:
+        contact_name = 'Papierflieger-Vertriebs-GmbH'
+        address_one = 'Rabattstr. 25'
+        address_two = ''
+        county = 'Papierfeld'
+        town = 'Osterhausen'
+        postcode = 'DE-34567'
+
+        class country:
+            name = 'Germany'
+    
+    invoice_id = 1
+    invoice_date = datetime.now()
+    currency = 'EUR'
+
+    class user:
+        username = 'User1'
+
+ITEM = [
+    {
+        'quantity': 12,
+        'description': 'Best Cup',
+        'unit_price': 2.5,
+        'total': 25
+    },
+    {
+        'quantity': 50,
+        'description': 'Best Cup',
+        'unit_price': 2.0,
+        'total': 100
+    }
+]
+
+def format_currency(amount, currency):
+    if currency:
+        return u"{1} {0:.2f} {1}".format(amount, currency)
+
+    return u"%s %.2f %s" % (
+        '\u20ac35', u'EUR'
+    )
+
+def create_pdf(request):
+    """ 
+        Draws the invoice 
+    """
+
+    # output file name
+    file_name = 'resource.pdf'
+
+    packet = StringIO()
+    canvas = Canvas(packet, pagesize=A4)
+    canvas.translate(0, 29.7 * cm)
+    canvas.setFont('Helvetica', 10)
+
+    canvas.saveState()
+    canvas.restoreState()
+
+    canvas.saveState()
+    canvas.restoreState()
+
+    canvas.saveState()
+    canvas.restoreState()
+
+    # Client address
+    textobject = canvas.beginText(1.5 * cm, -2.5 * cm)
+    if invoice.address.contact_name:
+        textobject.textLine(invoice.address.contact_name)
+    textobject.textLine(invoice.address.address_one)
+    if invoice.address.address_two:
+        textobject.textLine(invoice.address.address_two)
+    textobject.textLine(invoice.address.town)
+    if invoice.address.county:
+        textobject.textLine(invoice.address.county)
+    textobject.textLine(invoice.address.postcode)
+    textobject.textLine(invoice.address.country.name)
+    canvas.drawText(textobject)
+
+    # Info
+    textobject = canvas.beginText(1.5 * cm, -6.75 * cm)
+    textobject.textLine(u'Invoice ID: %s' % invoice.invoice_id)
+    textobject.textLine(u'Invoice Date: %s' % invoice.invoice_date.strftime('%d %b %Y'))
+    textobject.textLine(u'Client: %s' % invoice.user.username)
+    canvas.drawText(textobject)
+
+    # Items
+    data = [[u'Quantity', u'Description', u'Amount', u'Total'], ]
+    for item in ITEM:
+        data.append([
+            item['quantity'],
+            item['description'],
+            format_currency(item['unit_price'], invoice.currency),
+            format_currency(item['total'], invoice.currency)
+        ])
+    data.append([u'', u'', u'Total:', format_currency(12312, invoice.currency)])
+    table = Table(data, colWidths=[2 * cm, 11 * cm, 3 * cm, 3 * cm])
+    table.setStyle([
+        ('FONT', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 0), (-1, -1), (0.2, 0.2, 0.2)),
+        ('GRID', (0, 0), (-1, -2), 1, (0.7, 0.7, 0.7)),
+        ('GRID', (-2, -1), (-1, -1), 1, (0.7, 0.7, 0.7)),
+        ('ALIGN', (-2, 0), (-1, -1), 'RIGHT'),
+        ('BACKGROUND', (0, 0), (-1, 0), (0.8, 0.8, 0.8)),
+    ])
+    tw, th, = table.wrapOn(canvas, 15 * cm, 19 * cm)
+    table.drawOn(canvas, 1 * cm, -8 * cm - th)
+
+    canvas.showPage()
+    canvas.save()
+
+    #get back to 0
+    packet.seek(0)
+
+    with open(file_name, 'wb') as fp:
+        fp.write(packet.getvalue())
+    return HttpResponse("success")
+
+def to_pdf(buffer):
+    """ Draws the invoice """
+    canvas = Canvas(buffer, pagesize=A4)
+    canvas.translate(0, 29.7 * cm)
+    canvas.setFont('Helvetica', 10)
+
+    canvas.saveState()
+    canvas.restoreState()
+
+    canvas.saveState()
+    canvas.restoreState()
+
+    canvas.saveState()
+    canvas.restoreState()
+
+    # Client address
+    textobject = canvas.beginText(1.5 * cm, -2.5 * cm)
+    if invoice.address.contact_name:
+        textobject.textLine(invoice.address.contact_name)
+    textobject.textLine(invoice.address.address_one)
+    if invoice.address.address_two:
+        textobject.textLine(invoice.address.address_two)
+    textobject.textLine(invoice.address.town)
+    if invoice.address.county:
+        textobject.textLine(invoice.address.county)
+    textobject.textLine(invoice.address.postcode)
+    textobject.textLine(invoice.address.country.name)
+    canvas.drawText(textobject)
+
+    # Info
+    textobject = canvas.beginText(1.5 * cm, -6.75 * cm)
+    textobject.textLine(u'Invoice ID: %s' % invoice.invoice_id)
+    textobject.textLine(u'Invoice Date: %s' % invoice.invoice_date.strftime('%d %b %Y'))
+    textobject.textLine(u'Client: %s' % invoice.user.username)
+    canvas.drawText(textobject)
+
+    # Items
+    data = [[u'Quantity', u'Description', u'Amount', u'Total'], ]
+    for item in ITEM:
+        data.append([
+            item['quantity'],
+            item['description'],
+            format_currency(item['unit_price'], invoice.currency),
+            format_currency(item['total'], invoice.currency)
+        ])
+    data.append([u'', u'', u'Total:', format_currency(12312, invoice.currency)])
+    table = Table(data, colWidths=[2 * cm, 11 * cm, 3 * cm, 3 * cm])
+    table.setStyle([
+        ('FONT', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 0), (-1, -1), (0.2, 0.2, 0.2)),
+        ('GRID', (0, 0), (-1, -2), 1, (0.7, 0.7, 0.7)),
+        ('GRID', (-2, -1), (-1, -1), 1, (0.7, 0.7, 0.7)),
+        ('ALIGN', (-2, 0), (-1, -1), 'RIGHT'),
+        ('BACKGROUND', (0, 0), (-1, 0), (0.8, 0.8, 0.8)),
+    ])
+    tw, th, = table.wrapOn(canvas, 15 * cm, 19 * cm)
+    table.drawOn(canvas, 1 * cm, -8 * cm - th)
+
+    canvas.showPage()
+    canvas.save()
+
+def print_pdf(request):
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = "attachment; filename=\"%s\"" % 'IT_invoice.pdf'
+    to_pdf(response)
+    return response

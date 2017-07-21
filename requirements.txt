@@ -1,5 +1,4 @@
 Django==1.11.2
-django-addresses==0.1
 django-extensions==1.7.9
 lxml==3.8.0
 olefile==0.44

@@ -7,12 +7,9 @@ from django.db import models
 from django.db import models
 from django.contrib.auth.models import User
 
-from addressbook.models import Address
-
 
 class UserProfile(models.Model):
     user = models.ForeignKey(User, unique=True)
-    addresses = models.ManyToManyField(Address)
 
     def __unicode__(self):
         return self.user.email
